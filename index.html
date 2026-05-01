@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Case Docket · Legacy Equities</title>
 <meta name="theme-color" content="#1c1c1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <script>
 /* ============================================================
    STEP 1 — Paste your Supabase values here before deploying
@@ -20,7 +22,7 @@ const SUPABASE_KEY  = 'sb_publishable_-g5M7IGORx8d37hhZ3Xdeg_fSJyKmvJ';
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;}
 .app{display:flex;flex-direction:column;height:100vh;overflow:hidden;}
 /* NAV */
-.nav{height:54px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px;flex-shrink:0;}
+.nav{height:54px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px;flex-shrink:0;} @media all and (display-mode:standalone){.nav{padding-left:80px;}}
 .brand{font-size:16px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;letter-spacing:-.3px;}
 .nav-tabs{display:flex;gap:2px;}
 .ntab{height:32px;padding:0 13px;font-size:13px;border:1px solid transparent;border-radius:var(--r);background:none;color:var(--text2);cursor:pointer;font-family:inherit;transition:all .12s;}
