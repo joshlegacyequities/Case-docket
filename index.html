@@ -67,6 +67,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .mf .mk{font-size:11px;color:var(--text3);margin-right:3px;}
 .cr3{font-size:12px;color:var(--text3);display:flex;gap:16px;flex-wrap:wrap;margin-bottom:5px;}
 .zoom-info{font-size:12px;color:#185FA5;margin-bottom:5px;}.zoom-info a{color:inherit;}
+.judgment-banner{font-size:12px;background:#EEEDFE;color:#3C3489;border-radius:6px;padding:8px 11px;margin-bottom:5px;line-height:1.6;}
+.jorders{color:#5547A8;display:block;margin-top:3px;}
 .card-actions{display:flex;gap:7px;margin-top:9px;padding-top:9px;border-top:1px solid var(--border);align-items:center;}
 .card-gcal{height:26px;padding:0 10px;font-size:11px;font-weight:500;border-radius:var(--r);background:#1a73e8;color:#fff;border:none;cursor:pointer;display:flex;align-items:center;gap:5px;text-decoration:none;}
 .card-gcal:hover{opacity:.85;}
@@ -246,7 +248,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <button class="mtab on" onclick="mTab(0)">Case info</button>
       <button class="mtab" onclick="mTab(1)">Virtual hearing</button>
       <button class="mtab" onclick="mTab(2)">Service</button>
-      <button class="mtab" onclick="mTab(3)">Notes</button>
+      <button class="mtab" onclick="mTab(3)">Judgment</button>
+      <button class="mtab" onclick="mTab(4)">Notes</button>
     </div>
     <div class="modal-body">
       <div class="gcal-banner" id="gcal-banner" style="display:none;">
@@ -301,6 +304,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         </div>
       </div>
       <div class="tp" id="tp3">
+        <div class="form-sec">Judgment details</div>
+        <div class="fg">
+          <div class="f"><label>Judgment date</label><input type="date" id="f-jdate"></div>
+          <div class="f"><label>Judgment type</label><select id="f-jtype"><option value="">— select —</option><option>Consent</option><option>Default</option><option>Hearing</option></select></div>
+          <div class="f"><label>Possession judgment</label><select id="f-jposs"><option value="">— select —</option><option>Yes — plaintiff</option><option>Yes — defendant retains</option><option>No</option></select></div>
+          <div class="f"><label>Rent owed ($)</label><input type="number" id="f-jrent" placeholder="0.00"></div>
+          <div class="f"><label>Costs ($)</label><input type="number" id="f-jcosts" placeholder="0.00"></div>
+          <div class="f"><label>Total judgment ($)</label><input type="number" id="f-jtotal" placeholder="0.00"></div>
+          <div class="f"><label>Pay-or-vacate deadline</label><input type="date" id="f-jpov"></div>
+          <div class="f"><label>Signed by</label><input id="f-jsigned" placeholder="Judge / magistrate who signed"></div>
+          <div class="f w2"><label>Further orders</label><textarea id="f-jorders" placeholder="e.g. Defendant to pay $700 every Monday beginning 5-4-26 until balance is $0" style="min-height:70px;"></textarea></div>
+          <div class="f w2"><label>Payment plan notes</label><textarea id="f-jpayplan" placeholder="Payment schedule, compliance tracking, missed payments…" style="min-height:70px;"></textarea></div>
+        </div>
+      </div>
+      <div class="tp" id="tp4">
         <div class="form-sec">Attorney notes</div>
         <div class="f w2" style="margin-bottom:18px;"><textarea id="f-anotes" placeholder="Legal strategy, key arguments, research, client instructions…"></textarea></div>
         <div class="form-sec">General notes</div>
@@ -509,6 +527,7 @@ function renderDocket(){
         ${c.smethod?`<span>Served: ${c.smethod}${c.sdate?' ('+fmtDate(c.sdate)+')':''}</span>`:''}
       </div>
       ${zl?`<div class="zoom-info">${zl}</div>`:''}
+      ${(c.jtotal||c.jorders)?`<div class="judgment-banner">⚖ Judgment${c.jtype?' · '+c.jtype:''}${c.jdate?' · '+fmtDate(c.jdate):''}${c.jtotal?' · Total: <strong>$'+Number(c.jtotal).toLocaleString()+'</strong>':''}${c.jrent?' (rent: $'+Number(c.jrent).toLocaleString()+')':''}${c.jpov?' · Pay/vacate by: '+fmtDate(c.jpov):''}${c.jorders?'<br><span class="jorders">📋 '+c.jorders+'</span>':''}</div>`:''}
       ${c.anotes?`<div style="font-size:12px;color:var(--text2);font-style:italic;margin-bottom:4px;">📝 ${c.anotes.slice(0,130)}${c.anotes.length>130?'…':''}</div>`:''}
       <div class="card-actions" onclick="event.stopPropagation()">
         ${gcalUrl?`<a class="card-gcal" href="${gcalUrl}" target="_blank">📅 Add to Google Calendar</a>`:''}
@@ -580,6 +599,10 @@ function openModal(id){
   g('f-vplat').value=c.vplat||'';g('f-zid').value=c.zid||'';g('f-zpw').value=c.zpw||'';g('f-zlink').value=c.zlink||'';
   g('f-sdate').value=c.sdate||'';g('f-smethod').value=c.smethod||'';g('f-server').value=c.server_name||'';g('f-rof').value=c.rof||'';
   g('f-anotes').value=c.anotes||'';g('f-notes').value=c.notes||'';
+  g('f-jdate').value=c.jdate||'';g('f-jtype').value=c.jtype||'';g('f-jposs').value=c.jposs||'';
+  g('f-jrent').value=c.jrent||'';g('f-jcosts').value=c.jcosts||'';g('f-jtotal').value=c.jtotal||'';
+  g('f-jpov').value=c.jpov||'';g('f-jsigned').value=c.jsigned||'';
+  g('f-jorders').value=c.jorders||'';g('f-jpayplan').value=c.jpayplan||'';
   refreshGcalBanner();
   document.getElementById('overlay').style.display='flex';
   setTimeout(()=>g('f-tenant').focus(),60);
@@ -592,7 +615,7 @@ async function saveCase(){
   const g=i=>document.getElementById(i).value;
   if(!g('f-tenant').trim()&&!g('f-cnum').trim()){alert('Enter a tenant name or case number.');return;}
   const now=new Date().toISOString();
-  const c={id:editId||(Date.now().toString(36)+Math.random().toString(36).slice(2,5)),tenant:g('f-tenant').trim(),address:g('f-addr'),prop:g('f-prop'),cnum:g('f-cnum'),ctype:g('f-ctype'),court:g('f-court'),judge:g('f-judge'),filed:g('f-filed')||null,hearing:g('f-hearing')||null,htime:g('f-htime')||null,status:g('f-status'),amount:g('f-amt')||null,vplat:g('f-vplat'),zid:g('f-zid'),zpw:g('f-zpw'),zlink:g('f-zlink'),sdate:g('f-sdate')||null,smethod:g('f-smethod'),server_name:g('f-server'),rof:g('f-rof')||null,anotes:g('f-anotes'),notes:g('f-notes'),updated_by:currentUser,updated_at:now};
+  const c={id:editId||(Date.now().toString(36)+Math.random().toString(36).slice(2,5)),tenant:g('f-tenant').trim(),address:g('f-addr'),prop:g('f-prop'),cnum:g('f-cnum'),ctype:g('f-ctype'),court:g('f-court'),judge:g('f-judge'),filed:g('f-filed')||null,hearing:g('f-hearing')||null,htime:g('f-htime')||null,status:g('f-status'),amount:g('f-amt')||null,vplat:g('f-vplat'),zid:g('f-zid'),zpw:g('f-zpw'),zlink:g('f-zlink'),sdate:g('f-sdate')||null,smethod:g('f-smethod'),server_name:g('f-server'),rof:g('f-rof')||null,anotes:g('f-anotes'),notes:g('f-notes'),jdate:g('f-jdate')||null,jtype:g('f-jtype'),jposs:g('f-jposs'),jrent:g('f-jrent')||null,jcosts:g('f-jcosts')||null,jtotal:g('f-jtotal')||null,jpov:g('f-jpov')||null,jsigned:g('f-jsigned'),jorders:g('f-jorders'),jpayplan:g('f-jpayplan'),updated_by:currentUser,updated_at:now};
   try{
     if(editId){await sbPatch('cases',editId,c);}else{c.created_at=now;await sbPost('cases',c);}
     await sbPost('activity_log',{case_id:c.id,action:editId?'updated':'created',user_name:currentUser,details:`${c.tenant||'Unknown'} — ${c.cnum||'No case #'}`});
@@ -678,7 +701,7 @@ async function handleUpload(file){
     const base64=await toBase64(file);
     const isPDF=file.type==='application/pdf'||ext==='pdf';
     const block=isPDF?{type:'document',source:{type:'base64',media_type:'application/pdf',data:base64}}:{type:'image',source:{type:'base64',media_type:file.type||'image/jpeg',data:base64}};
-    const prompt=`Extract data from this Michigan landlord-tenant court document. Look at every part including headers, stamps, handwritten text, and all printed fields. Return ONLY a JSON object — no markdown.\n\n{"tenant":"full defendant name","address":"full property address","casenum":"case/docket number","court":"full court name","judge":"judge or magistrate name","filed":"YYYY-MM-DD","hearing":"YYYY-MM-DD","hearingTime":"HH:MM 24h (e.g. 1:30 P.M. = 13:30)","caseType":"Eviction|Money Judgment|Land Contract|Trespass|Other","amount":null,"vplatform":"Zoom/Teams/etc or null","zoomId":"meeting ID — search for Meeting ID# anywhere in the document","zoomPassword":"passcode or null","joinLink":"full https URL or null"}`;
+    const prompt=`You are extracting data from a Michigan landlord-tenant court document. It may be a SUMMONS (DC-104) or a JUDGMENT (DC-105). Read every field, stamp, checkbox, and handwritten entry carefully. Return ONLY valid JSON — no markdown.\n\n{"docType":"summons or judgment","tenant":"full defendant name","address":"full property address","casenum":"case number e.g. 26-1627-LT","court":"full court name","judge":"judge name","filed":"YYYY-MM-DD","hearing":"hearing date YYYY-MM-DD","hearingTime":"HH:MM 24h","caseType":"Eviction|Money Judgment|Land Contract|Trespass|Other","amount":null,"vplatform":"Zoom or Teams or null","zoomId":"meeting ID or null","zoomPassword":"passcode or null","joinLink":"full URL or null","judgmentDate":"YYYY-MM-DD or null","judgmentType":"Consent or Default or Hearing — check which box is checked","possessionJudgment":"Yes — plaintiff or Yes — defendant retains or No","rentOwed":null,"costs":null,"judgmentTotal":null,"payOrVacateDeadline":"YYYY-MM-DD or null","furtherOrders":"exact verbatim text from item 10 THE COURT FURTHER ORDERS field","signedBy":"judge who physically signed"}`;
     const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:[block,{type:'text',text:prompt}]}]})});
     if(!res.ok){const err=await res.json();throw new Error(err.error?.message||'API error '+res.status);}
     const data=await res.json();
@@ -692,9 +715,24 @@ async function handleUpload(file){
     if(info.caseType)g('f-ctype').value=info.caseType;if(info.amount)g('f-amt').value=info.amount;
     if(info.vplatform)g('f-vplat').value=info.vplatform;if(info.zoomId)g('f-zid').value=info.zoomId;
     if(info.zoomPassword)g('f-zpw').value=info.zoomPassword;if(info.joinLink)g('f-zlink').value=info.joinLink;
-    if(!editId)g('f-status').value='Scheduled';
+    // Judgment fields
+    if(info.judgmentDate)g('f-jdate').value=info.judgmentDate;
+    if(info.judgmentType)g('f-jtype').value=info.judgmentType;
+    if(info.possessionJudgment)g('f-jposs').value=info.possessionJudgment;
+    if(info.rentOwed)g('f-jrent').value=info.rentOwed;
+    if(info.costs)g('f-jcosts').value=info.costs;
+    if(info.judgmentTotal)g('f-jtotal').value=info.judgmentTotal;
+    if(info.payOrVacateDeadline)g('f-jpov').value=info.payOrVacateDeadline;
+    if(info.furtherOrders)g('f-jorders').value=info.furtherOrders;
+    if(info.signedBy)g('f-jsigned').value=info.signedBy;
+    // Set status based on doc type
+    if(!editId){
+      g('f-status').value = info.docType==='judgment' ? 'Judgment' : 'Scheduled';
+      if(info.docType==='judgment') setTimeout(()=>{ document.querySelectorAll('.mtab')[3].click(); },300);
+    }
     refreshGcalBanner();
-    showExtrMsg('✓ Extracted — review fields and save','success');
+    const docLabel = info.docType==='judgment' ? '⚖ Judgment extracted' : '✓ Summons extracted';
+    showExtrMsg(docLabel+' — review fields and save','success');
   }catch(e){showExtrMsg('⚠ Extraction failed: '+e.message,'error');document.getElementById('upzone').style.display='';console.error(e);}
 }
 function toBase64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=()=>rej(new Error('Read failed'));r.readAsDataURL(file);});}
