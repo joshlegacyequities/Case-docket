@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Case Docket · Legacy Equities</title>
+<meta name="theme-color" content="#1c1c1a">
+<script>
+/* ============================================================
+   STEP 1 — Paste your Supabase values here before deploying
+   ============================================================ */
+const SUPABASE_URL  = 'https://kssyjjecculennwfqsuc.supabase.co';
+const SUPABASE_KEY  = 'sb_publishable_-g5M7IGORx8d37hhZ3Xdeg_fSJyKmvJ';
+/* ============================================================ */
+</script>
+<style>
+:root{--bg:#f5f4f1;--surface:#fff;--surface2:#f0efeb;--text:#1c1c1a;--text2:#64635e;--text3:#9a9a94;--border:rgba(0,0,0,0.10);--border2:rgba(0,0,0,0.20);--accent:#1c1c1a;--accent-fg:#fff;--r:8px;--rl:12px;}
+@media(prefers-color-scheme:dark){:root{--bg:#181817;--surface:#222220;--surface2:#2a2a27;--text:#edece8;--text2:#9a9a94;--text3:#606059;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.16);--accent:#edece8;--accent-fg:#181817;}}
+*{box-sizing:border-box;margin:0;padding:0;}html,body{height:100%;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;}
+.app{display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+/* NAV */
+.nav{height:54px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px;flex-shrink:0;}
+.brand{font-size:16px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;letter-spacing:-.3px;}
+.nav-tabs{display:flex;gap:2px;}
+.ntab{height:32px;padding:0 13px;font-size:13px;border:1px solid transparent;border-radius:var(--r);background:none;color:var(--text2);cursor:pointer;font-family:inherit;transition:all .12s;}
+.ntab:hover{color:var(--text);background:var(--surface2);}.ntab.on{background:var(--surface2);color:var(--text);border-color:var(--border2);font-weight:500;}
+.nav-r{margin-left:auto;display:flex;gap:8px;align-items:center;}
+.btn{height:32px;padding:0 13px;font-size:13px;border:1px solid var(--border2);border-radius:var(--r);background:none;color:var(--text2);cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;transition:all .12s;white-space:nowrap;text-decoration:none;}
+.btn:hover{background:var(--surface2);color:var(--text);}.btn.pk{background:var(--accent);color:var(--accent-fg);border-color:transparent;font-weight:600;}.btn.pk:hover{opacity:.82;}
+.btn.gcal{background:#1a73e8;color:#fff;border-color:transparent;}.btn.gcal:hover{opacity:.85;}
+.btn.icon{width:32px;padding:0;justify-content:center;}
+.sync-status{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);}
+.sdot{width:7px;height:7px;border-radius:50%;background:#639922;flex-shrink:0;}
+.sdot.syncing{background:#e8a825;animation:pulse 1s infinite;}.sdot.err{background:#d93025;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+.who-badge{height:26px;padding:0 10px;font-size:12px;font-weight:500;border-radius:20px;background:var(--surface2);border:1px solid var(--border2);color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px;}
+/* METRICS */
+.metrics-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;flex-shrink:0;}
+.mc{flex:1;padding:0 20px;border-right:1px solid var(--border);}.mc:first-child{padding-left:0;}.mc:last-child{border-right:none;}
+.mc .ml{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;}
+.mc .mv{font-size:26px;font-weight:700;color:var(--text);letter-spacing:-.5px;}
+/* TOOLBAR */
+.toolbar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;}
+.toolbar input,.toolbar select{height:32px;font-size:13px;padding:0 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);font-family:inherit;}
+#s-search{flex:1;min-width:200px;}
+/* DOCKET */
+.docket-wrap{flex:1;overflow-y:auto;padding:16px 24px;display:flex;flex-direction:column;gap:8px;}
+.empty-state{text-align:center;padding:80px 20px;}
+.empty-state .ei{font-size:40px;margin-bottom:14px;}
+.empty-state .et{font-size:17px;font-weight:600;color:var(--text2);margin-bottom:8px;}
+.empty-state .es{font-size:13px;color:var(--text3);line-height:1.7;}
+/* CARDS */
+.case-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:14px 16px;cursor:pointer;transition:border-color .15s,box-shadow .15s;}
+.case-card:hover{border-color:var(--border2);box-shadow:0 2px 12px rgba(0,0,0,.07);}
+.cr1{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:7px;}
+.cname{font-size:15px;font-weight:600;color:var(--text);}
+.badge{font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;white-space:nowrap;}
+.s-filed{background:#E6F1FB;color:#0C447C}.s-pending{background:#FAEEDA;color:#633806}
+.s-scheduled{background:#EAF3DE;color:#27500A}.s-adjourned{background:#FBEAF0;color:#72243E}
+.s-default{background:#EEEDFE;color:#3C3489}.s-judgment{background:#EEEDFE;color:#26215C}
+.s-dismissed{background:#F1EFE8;color:#5F5E5A}.s-closed{background:#F1EFE8;color:#444441}
+.t-urg{background:#FAECE7;color:#993C1D}.t-ovd{background:#FCEBEB;color:#A32D2D}
+.cr2{font-size:13px;color:var(--text2);display:flex;gap:18px;flex-wrap:wrap;margin-bottom:5px;}
+.mf .mk{font-size:11px;color:var(--text3);margin-right:3px;}
+.cr3{font-size:12px;color:var(--text3);display:flex;gap:16px;flex-wrap:wrap;margin-bottom:5px;}
+.zoom-info{font-size:12px;color:#185FA5;margin-bottom:5px;}.zoom-info a{color:inherit;}
+.card-actions{display:flex;gap:7px;margin-top:9px;padding-top:9px;border-top:1px solid var(--border);align-items:center;}
+.card-gcal{height:26px;padding:0 10px;font-size:11px;font-weight:500;border-radius:var(--r);background:#1a73e8;color:#fff;border:none;cursor:pointer;display:flex;align-items:center;gap:5px;text-decoration:none;}
+.card-gcal:hover{opacity:.85;}
+.card-edit{height:26px;padding:0 10px;font-size:11px;border-radius:var(--r);background:none;border:1px solid var(--border2);color:var(--text2);cursor:pointer;font-family:inherit;}
+.card-edit:hover{background:var(--surface2);}
+.edited-by{font-size:11px;color:var(--text3);margin-left:auto;}
+/* CALENDAR */
+.cal-view{flex:1;overflow-y:auto;display:flex;flex-direction:column;}
+.cal-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.cal-nav h2{font-size:16px;font-weight:700;flex:1;text-align:center;letter-spacing:-.3px;}
+.cal-body{padding:16px 24px;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.cal-dh{text-align:center;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;padding:4px 0;font-weight:600;}
+.cal-cell{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);min-height:100px;padding:8px;}
+.cal-cell.om{opacity:.25;}.cal-cell.today{border-color:#185FA5;border-width:2px;}
+.day-num{font-size:12px;font-weight:600;color:var(--text3);margin-bottom:5px;}
+.cal-chip{font-size:11px;padding:2px 6px;border-radius:4px;margin-bottom:3px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cal-chip:hover{opacity:.75;}
+/* ACTIVITY */
+.activity-view{flex:1;overflow-y:auto;padding:20px 24px;}
+.activity-view h2{font-size:15px;font-weight:600;margin-bottom:16px;}
+.act-row{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--border);}
+.act-icon{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.act-created{background:#EAF3DE;}.act-updated{background:#E6F1FB;}.act-deleted{background:#FCEBEB;}
+.act-title{font-size:13px;font-weight:500;color:var(--text);}
+.act-meta{font-size:11px;color:var(--text3);margin-top:2px;}
+/* OVERLAYS */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9000;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);width:680px;max-width:100%;box-shadow:0 25px 80px rgba(0,0,0,.25);}
+.modal-hdr{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-hdr h3{font-size:16px;font-weight:700;letter-spacing:-.2px;}
+.modal-tabs{display:flex;border-bottom:1px solid var(--border);padding:0 20px;overflow-x:auto;}
+.mtab{height:40px;padding:0 14px;font-size:13px;border:none;background:none;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;font-family:inherit;}
+.mtab:hover{color:var(--text);}.mtab.on{color:var(--text);border-bottom-color:var(--text);font-weight:600;}
+.modal-body{padding:20px;}
+.upzone{border:2px dashed var(--border2);border-radius:var(--r);padding:20px;text-align:center;margin-bottom:18px;cursor:pointer;transition:all .15s;}
+.upzone:hover{background:var(--surface2);border-color:var(--text3);}.upzone.drag{background:#E6F1FB;border-color:#185FA5;}
+.upzone .ui{font-size:26px;margin-bottom:5px;}.upzone .ut{font-size:14px;font-weight:500;color:var(--text2);}
+.upzone .us{font-size:12px;color:var(--text3);margin-top:3px;}
+.extr-msg{display:flex;align-items:center;gap:8px;font-size:13px;border-radius:var(--r);padding:10px 14px;margin-bottom:18px;}
+@keyframes spin{to{transform:rotate(360deg);}}.spin{animation:spin .7s linear infinite;display:inline-block;}
+.gcal-banner{background:#E8F0FE;border:1px solid #C5D6F7;border-radius:var(--r);padding:12px 14px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.form-sec{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;font-weight:700;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:16px;}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.f{display:flex;flex-direction:column;gap:5px;}.f.w2{grid-column:1/-1;}
+.f label{font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.06em;}
+.f input,.f select,.f textarea{font-size:13px;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);font-family:inherit;width:100%;}
+.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--text2);}
+.f textarea{resize:vertical;min-height:90px;}
+.tp{display:none;}.tp.on{display:block;}
+.modal-ftr{padding:16px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;align-items:center;}
+.btn-del{margin-right:auto;height:36px;padding:0 14px;font-size:13px;font-weight:500;border:1px solid #E24B4A;border-radius:var(--r);background:none;color:#A32D2D;cursor:pointer;font-family:inherit;}
+.btn-del:hover{background:#FCEBEB;}
+.btn-cancel{height:36px;padding:0 14px;font-size:13px;border:1px solid var(--border2);border-radius:var(--r);background:none;color:var(--text2);cursor:pointer;font-family:inherit;}
+.btn-cancel:hover{background:var(--surface2);}
+.btn-save{height:36px;padding:0 20px;font-size:13px;font-weight:700;border:none;border-radius:var(--r);background:var(--accent);color:var(--accent-fg);cursor:pointer;font-family:inherit;}
+.btn-save:hover{opacity:.82;}
+/* WHO MODAL */
+.who-modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);width:340px;max-width:100%;box-shadow:0 25px 80px rgba(0,0,0,.25);padding:24px;}
+.who-modal h3{font-size:16px;font-weight:700;margin-bottom:6px;}
+.who-modal p{font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6;}
+.who-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.who-chip{padding:10px 12px;border:1px solid var(--border2);border-radius:var(--r);cursor:pointer;text-align:center;font-size:14px;font-weight:500;transition:all .12s;}
+.who-chip:hover{background:var(--surface2);}.who-chip.sel{background:var(--accent);color:var(--accent-fg);border-color:transparent;}
+.who-modal input{width:100%;font-size:13px;padding:9px 11px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);font-family:inherit;margin-bottom:12px;}
+/* SETUP BANNER */
+.setup-banner{background:#FFF8E7;border:1px solid #F0D070;border-radius:var(--rl);padding:20px 24px;margin:20px 24px;}
+.setup-banner h3{font-size:15px;font-weight:700;color:#7A5700;margin-bottom:8px;}
+.setup-banner p{font-size:13px;color:#8A6300;line-height:1.7;margin-bottom:10px;}
+.setup-banner code{background:#F5E9B8;padding:2px 6px;border-radius:4px;font-family:monospace;font-size:12px;}
+@media print{.nav,.metrics-bar,.toolbar{display:none;}.docket-wrap{overflow:visible;padding:0;}.case-card{break-inside:avoid;}}
+</style>
+</head>
+<body>
+<datalist id="dl-prop">
+  <option>Legacy on The River</option><option>Creekwood Apartments</option><option>Legacy Flats</option>
+  <option>Legacy Manor</option><option>Legacy Place</option><option>Verwood Apartments</option>
+  <option>Haslett Property</option><option>Milford Property</option><option>South Lyon Property</option>
+  <option>Plymouth Property</option><option>Royal Oak Property</option><option>Troy Property</option>
+  <option>Lake Orion Property</option><option>Sterling Heights Property</option><option>Fraser Property</option>
+  <option>St. Clair Property</option><option>Fort Gratiot Property</option><option>Grosse Pointe Property</option>
+</datalist>
+<datalist id="dl-court">
+  <option>36th District Court</option><option>35th District Court (Plymouth)</option>
+  <option>41B District Court (Sterling Heights)</option><option>44th District Court (Royal Oak)</option>
+  <option>45th District Court (Oak Park)</option><option>46th District Court (Southfield)</option>
+  <option>48th District Court (Bloomfield Hills)</option><option>51st District Court (Waterford)</option>
+  <option>52nd District Court Div. 2 (Clarkston)</option><option>52nd District Court Div. 3 (Rochester Hills)</option>
+  <option>52nd District Court Div. 4 (Troy)</option><option>53rd District Court (Howell)</option>
+  <option>55th District Court (Mason)</option><option>72nd District Court (St. Clair County)</option>
+  <option>Oakland County Circuit Court</option><option>Macomb County Circuit Court</option>
+  <option>Ingham County Circuit Court</option><option>St. Clair County Circuit Court</option>
+  <option>Livingston County Circuit Court</option><option>Lucas County Court of Common Pleas</option>
+</datalist>
+
+<div class="app">
+  <nav class="nav">
+    <div class="brand">⚖ Case Docket</div>
+    <div class="nav-tabs">
+      <button class="ntab on" onclick="setView('docket')">Docket</button>
+      <button class="ntab" onclick="setView('calendar')">Calendar</button>
+      <button class="ntab" onclick="setView('activity')">Activity</button>
+    </div>
+    <div class="nav-r">
+      <div class="sync-status"><span class="sdot" id="sdot"></span><span id="slabel">Connecting…</span></div>
+      <button class="who-badge" onclick="openWho()" id="who-btn">👤 Set name</button>
+      <button class="btn" onclick="exportCSV()">↓ CSV</button>
+      <button class="btn" onclick="window.print()">⎙ Print</button>
+      <button class="btn icon" onclick="openSettings()" title="Settings">⚙</button>
+      <button class="btn pk" onclick="openModal(null)">+ New Case</button>
+    </div>
+  </nav>
+
+  <div class="metrics-bar">
+    <div class="mc"><div class="ml">Total filed</div><div class="mv" id="m0">—</div></div>
+    <div class="mc"><div class="ml">Active</div><div class="mv" id="m1">—</div></div>
+    <div class="mc"><div class="ml">Upcoming (7d)</div><div class="mv" id="m2">—</div></div>
+    <div class="mc"><div class="ml">Overdue</div><div class="mv" id="m3">—</div></div>
+    <div class="mc"><div class="ml">Closed</div><div class="mv" id="m4">—</div></div>
+  </div>
+
+  <!-- DOCKET VIEW -->
+  <div id="v-docket" style="flex:1;overflow:hidden;display:flex;flex-direction:column;">
+    <div class="toolbar">
+      <input id="s-search" placeholder="Search tenant, case #, court, address…" oninput="renderDocket()">
+      <select id="s-status" onchange="renderDocket()">
+        <option value="">All statuses</option><option>Filed</option><option>Pending</option>
+        <option>Scheduled</option><option>Adjourned</option><option>Default</option>
+        <option>Judgment</option><option>Dismissed</option><option>Closed</option>
+      </select>
+      <select id="s-type" onchange="renderDocket()">
+        <option value="">All types</option><option>Eviction</option><option>Money Judgment</option>
+        <option>Land Contract</option><option>Trespass</option><option>Other</option>
+      </select>
+      <select id="s-prop" onchange="renderDocket()">
+        <option value="">All properties</option><option>Legacy on The River</option>
+        <option>Creekwood Apartments</option><option>Legacy Flats</option><option>Legacy Manor</option>
+        <option>Legacy Place</option><option>Verwood Apartments</option>
+      </select>
+      <button class="btn" onclick="toggleSort()">Sort <span id="sort-lbl">↓ Date</span></button>
+    </div>
+    <div class="docket-wrap" id="docket-list"></div>
+  </div>
+
+  <!-- CALENDAR VIEW -->
+  <div id="v-cal" class="cal-view" style="display:none;">
+    <div class="cal-nav">
+      <button class="btn" onclick="calNav(-1)">← Prev</button>
+      <h2 id="cal-title"></h2>
+      <button class="btn" onclick="calNav(1)">Next →</button>
+      <button class="btn" onclick="calToday()" style="margin-left:8px;">Today</button>
+    </div>
+    <div class="cal-body">
+      <div class="cal-grid" style="margin-bottom:4px;">
+        <div class="cal-dh">Sun</div><div class="cal-dh">Mon</div><div class="cal-dh">Tue</div>
+        <div class="cal-dh">Wed</div><div class="cal-dh">Thu</div><div class="cal-dh">Fri</div><div class="cal-dh">Sat</div>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+  </div>
+
+  <!-- ACTIVITY VIEW -->
+  <div id="v-activity" class="activity-view" style="display:none;">
+    <h2>Recent activity</h2>
+    <div id="activity-list"><span style="color:var(--text3);font-size:13px;">Loading…</span></div>
+  </div>
+</div>
+
+<!-- CASE MODAL -->
+<div class="overlay" id="overlay" style="display:none;" onclick="if(event.target===this)closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-hdr">
+      <h3 id="m-title">New case</h3>
+      <button class="btn icon" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-tabs">
+      <button class="mtab on" onclick="mTab(0)">Case info</button>
+      <button class="mtab" onclick="mTab(1)">Virtual hearing</button>
+      <button class="mtab" onclick="mTab(2)">Service</button>
+      <button class="mtab" onclick="mTab(3)">Notes</button>
+    </div>
+    <div class="modal-body">
+      <div class="gcal-banner" id="gcal-banner" style="display:none;">
+        <div><div style="font-size:13px;color:#1a56c7;font-weight:500;">📅 Add hearing to Google Calendar</div>
+        <div style="font-size:12px;color:#3a6dc7;margin-top:2px;">Opens pre-filled — just click Save in Google Calendar</div></div>
+        <button class="btn gcal" onclick="createCalEvent()">Open Google Calendar →</button>
+      </div>
+      <div class="upzone" id="upzone"
+        onclick="document.getElementById('file-in').click()"
+        ondragover="event.preventDefault();this.classList.add('drag')"
+        ondragleave="this.classList.remove('drag')"
+        ondrop="event.preventDefault();this.classList.remove('drag');handleUpload(event.dataTransfer.files[0])">
+        <div class="ui">📎</div>
+        <div class="ut">Upload summons to auto-fill — drag & drop or click</div>
+        <div class="us">PDF or image · Extracts tenant, case #, hearing date & time, Zoom ID</div>
+      </div>
+      <input type="file" id="file-in" accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="handleUpload(this.files[0]);this.value=''">
+      <div class="extr-msg" id="extr-msg" style="display:none;"></div>
+
+      <div class="tp on" id="tp0">
+        <div class="fg">
+          <div class="f w2"><label>Tenant / defendant</label><input id="f-tenant" placeholder="John Smith"></div>
+          <div class="f w2"><label>Property address</label><input id="f-addr" placeholder="5685 Pontiac Lake Rd. #5, Waterford, MI 48327"></div>
+          <div class="f w2"><label>Property name</label><input id="f-prop" list="dl-prop" placeholder="Legacy on The River…"></div>
+          <div class="f"><label>Case number</label><input id="f-cnum" placeholder="26-1627-LT"></div>
+          <div class="f"><label>Case type</label><select id="f-ctype"><option>Eviction</option><option>Money Judgment</option><option>Land Contract</option><option>Trespass</option><option>Other</option></select></div>
+          <div class="f w2"><label>Court</label><input id="f-court" list="dl-court" placeholder="51st District Court…"></div>
+          <div class="f w2"><label>Judge / magistrate</label><input id="f-judge" placeholder="Hon. Todd A. Fox"></div>
+          <div class="f"><label>Date filed</label><input type="date" id="f-filed"></div>
+          <div class="f"><label>Status</label><select id="f-status"><option>Filed</option><option>Pending</option><option>Scheduled</option><option>Adjourned</option><option>Default</option><option>Judgment</option><option>Dismissed</option><option>Closed</option></select></div>
+          <div class="f"><label>Hearing date</label><input type="date" id="f-hearing" oninput="refreshGcalBanner()"></div>
+          <div class="f"><label>Hearing time</label><input type="time" id="f-htime" oninput="refreshGcalBanner()"></div>
+          <div class="f"><label>Amount sought ($)</label><input type="number" id="f-amt" placeholder="0"></div>
+        </div>
+      </div>
+      <div class="tp" id="tp1">
+        <div class="form-sec">Virtual hearing details</div>
+        <div class="fg">
+          <div class="f"><label>Platform</label><select id="f-vplat"><option value="">— select —</option><option>Zoom</option><option>Microsoft Teams</option><option>Webex</option><option>In-Person</option><option>Phone</option></select></div>
+          <div class="f"><label>Meeting ID</label><input id="f-zid" placeholder="759 690 0376"></div>
+          <div class="f"><label>Passcode</label><input id="f-zpw" placeholder="123456"></div>
+          <div class="f w2"><label>Join link / URL</label><input id="f-zlink" placeholder="https://zoom.us/j/…"></div>
+        </div>
+      </div>
+      <div class="tp" id="tp2">
+        <div class="form-sec">Service of process</div>
+        <div class="fg">
+          <div class="f"><label>Date served</label><input type="date" id="f-sdate"></div>
+          <div class="f"><label>Service method</label><select id="f-smethod"><option value="">— select —</option><option>Personal</option><option>Substituted</option><option>Tack &amp; Mail</option><option>Posted</option><option>Certified Mail</option><option>Not Yet Served</option></select></div>
+          <div class="f"><label>Process server</label><input id="f-server" placeholder="Name or agency"></div>
+          <div class="f"><label>Return of service filed</label><input type="date" id="f-rof"></div>
+        </div>
+      </div>
+      <div class="tp" id="tp3">
+        <div class="form-sec">Attorney notes</div>
+        <div class="f w2" style="margin-bottom:18px;"><textarea id="f-anotes" placeholder="Legal strategy, key arguments, research, client instructions…"></textarea></div>
+        <div class="form-sec">General notes</div>
+        <div class="f w2"><textarea id="f-notes" placeholder="Writ status, tenant communications, misc updates…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn-del" id="m-del" style="display:none;" onclick="deleteCase()">Delete case</button>
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveCase()">Save case</button>
+    </div>
+  </div>
+</div>
+
+<!-- WHO MODAL -->
+<div class="overlay" id="who-overlay" style="display:none;" onclick="if(event.target===this)closeWho()">
+  <div class="who-modal" onclick="event.stopPropagation()">
+    <h3>Who are you?</h3>
+    <p>Your name shows in the activity log so the team can see who made changes.</p>
+    <div class="who-grid">
+      <div class="who-chip" onclick="setWho('Josh')">Josh</div>
+      <div class="who-chip" onclick="setWho('Sabrina')">Sabrina</div>
+      <div class="who-chip" onclick="setWho('Ari')">Ari</div>
+      <div class="who-chip" onclick="setWho('Talia')">Talia</div>
+    </div>
+    <input id="who-custom" placeholder="Or type your name…" onkeydown="if(event.key==='Enter')setWho(this.value)">
+    <button class="btn pk" style="width:100%;justify-content:center;height:38px;font-size:14px;" onclick="setWho(document.getElementById('who-custom').value)">Continue</button>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="overlay" id="settings-overlay" style="display:none;" onclick="if(event.target===this)closeSettings()">
+  <div class="modal" style="width:520px;" onclick="event.stopPropagation()">
+    <div class="modal-hdr"><h3>Settings</h3><button class="btn icon" onclick="closeSettings()">✕</button></div>
+    <div class="modal-body">
+      <div style="margin-bottom:22px;">
+        <h4 style="font-size:14px;font-weight:600;margin-bottom:10px;">Anthropic API key — AI extraction</h4>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">Each team member enters their own key. Stored in your browser only — used only for summons extraction.</p>
+        <div style="display:flex;gap:8px;">
+          <input type="password" id="api-key-input" placeholder="sk-ant-api03-…" autocomplete="off" style="flex:1;font-size:13px;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);font-family:inherit;">
+          <button class="btn" onclick="toggleApiKeyVis()">Show</button>
+          <button class="btn pk" onclick="saveApiKey()">Save</button>
+        </div>
+        <div style="font-size:12px;color:var(--text3);margin-top:8px;">Get a key at <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:#185FA5;">console.anthropic.com</a></div>
+      </div>
+      <div style="margin-bottom:22px;">
+        <h4 style="font-size:14px;font-weight:600;margin-bottom:8px;">Google Calendar</h4>
+        <p style="font-size:13px;color:var(--text3);">No setup needed. Click <strong>📅 Add to Google Calendar</strong> on any case card.</p>
+      </div>
+      <div>
+        <h4 style="font-size:14px;font-weight:600;margin-bottom:8px;">About</h4>
+        <p style="font-size:12px;color:var(--text3);">Case Docket · Legacy Equities Management<br>Database hosted on Supabase · App hosted on Vercel</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Supabase API ─────────────────────────────────────────────
+const SB_HEADERS = {
+  'apikey': SUPABASE_KEY,
+  'Authorization': 'Bearer ' + SUPABASE_KEY,
+  'Content-Type': 'application/json',
+  'Prefer': 'return=minimal',
+  'X-Client-Info': 'legacy-docket/1.0'
+};
+
+async function sbGet(table, params='') {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, { headers: SB_HEADERS });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function sbPost(table, body) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, { method:'POST', headers: SB_HEADERS, body: JSON.stringify(body) });
+  if (!r.ok) throw new Error(await r.text());
+}
+async function sbPatch(table, id, body) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, { method:'PATCH', headers: SB_HEADERS, body: JSON.stringify(body) });
+  if (!r.ok) throw new Error(await r.text());
+}
+async function sbDelete(table, id) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, { method:'DELETE', headers: SB_HEADERS });
+  if (!r.ok) throw new Error(await r.text());
+}
+
+// ── State ─────────────────────────────────────────────────────
+const AK = 'legacy-api-key';
+let cases = [], sortAsc = false, curView = 'docket', editId = null;
+let calYear, calMonth;
+let currentUser = localStorage.getItem('docket-user') || '';
+const todayDate = new Date(); todayDate.setHours(0,0,0,0);
+const todayStr = todayDate.toISOString().slice(0,10);
+
+// ── Check config ─────────────────────────────────────────────
+function isConfigured() {
+  return SUPABASE_URL !== 'PASTE_YOUR_SUPABASE_URL_HERE' && SUPABASE_KEY !== 'PASTE_YOUR_SUPABASE_ANON_KEY_HERE';
+}
+
+// ── Sync status ──────────────────────────────────────────────
+function setSyncStatus(state, label) {
+  document.getElementById('sdot').className = 'sdot' + (state==='syncing'?' syncing':state==='err'?' err':'');
+  document.getElementById('slabel').textContent = label;
+}
+
+// ── User ─────────────────────────────────────────────────────
+function updateWhoBadge() { document.getElementById('who-btn').textContent = '👤 ' + (currentUser || 'Set name'); }
+function openWho() { document.getElementById('who-overlay').style.display='flex'; document.getElementById('who-custom').value=''; updateWhoChips(); }
+function closeWho() { document.getElementById('who-overlay').style.display='none'; }
+function setWho(name) { if(!name?.trim())return; currentUser=name.trim(); localStorage.setItem('docket-user',currentUser); updateWhoBadge(); closeWho(); }
+function updateWhoChips() { document.querySelectorAll('.who-chip').forEach(c=>c.classList.toggle('sel',c.textContent===currentUser)); }
+
+// ── Load cases ───────────────────────────────────────────────
+async function loadCases() {
+  if (!isConfigured()) { showSetupBanner(); return; }
+  setSyncStatus('syncing','Syncing…');
+  try {
+    cases = await sbGet('cases','select=*&order=created_at.desc');
+    setSyncStatus('ok','Connected');
+    render();
+  } catch(e) {
+    setSyncStatus('err','Connection error');
+    document.getElementById('docket-list').innerHTML = `<div class="empty-state"><div class="ei">⚠️</div><div class="et">Cannot connect to database</div><div class="es">Check that your Supabase URL and key are correct in the HTML file.<br><br style="margin-bottom:4px;"><small style="font-family:monospace;font-size:11px;">${e.message}</small></div></div>`;
+  }
+}
+
+function showSetupBanner() {
+  setSyncStatus('err','Not configured');
+  document.getElementById('docket-list').innerHTML = `
+    <div class="setup-banner">
+      <h3>⚙️ Setup required — 2 values needed</h3>
+      <p>Open <code>index.html</code> in a text editor and paste your Supabase credentials at the top of the file:</p>
+      <p><code>const SUPABASE_URL = 'https://xxxx.supabase.co';</code><br>
+      <code>const SUPABASE_KEY = 'your-anon-key';</code></p>
+      <p>Then redeploy to Vercel. See the README for full instructions.</p>
+    </div>`;
+}
+
+// Auto-refresh every 30s so team edits appear
+setInterval(() => { if(isConfigured() && curView !== 'activity') loadCases(); }, 30000);
+
+// ── Helpers ──────────────────────────────────────────────────
+function dayDiff(ds){if(!ds)return null;return Math.round((new Date(ds+'T00:00:00')-todayDate)/86400000);}
+function fmtDate(ds){if(!ds)return'—';const[y,m,d]=ds.split('-');return m+'/'+d+'/'+y;}
+function fmtTime(ts){if(!ts)return'';const[h,m]=ts.split(':').map(Number);return(h%12||12)+':'+(String(m).padStart(2,'0'))+' '+(h>=12?'PM':'AM');}
+function fmtRelative(ts){if(!ts)return'';const diff=Math.floor((Date.now()-new Date(ts))/60000);if(diff<1)return'just now';if(diff<60)return diff+'m ago';const h=Math.floor(diff/60);if(h<24)return h+'h ago';return fmtDate(ts.slice(0,10));}
+function sKey(s){return{Filed:'filed',Pending:'pending',Scheduled:'scheduled',Adjourned:'adjourned',Default:'default',Judgment:'judgment',Dismissed:'dismissed',Closed:'closed'}[s]||'filed';}
+function sLabel(s){return{Scheduled:'Hearing Scheduled',Default:'Default Entered',Judgment:'Judgment Entered'}[s]||s;}
+function urgTag(c){const d=dayDiff(c.hearing);if(d===null||['Closed','Dismissed','Judgment'].includes(c.status))return'';if(d<0)return`<span class="badge t-ovd">Overdue ${Math.abs(d)}d</span>`;if(d<=3)return`<span class="badge t-ovd">In ${d}d</span>`;if(d<=7)return`<span class="badge t-urg">In ${d}d</span>`;return'';}
+
+// ── Google Calendar ──────────────────────────────────────────
+function buildGcalUrl(c){
+  if(!c.hearing)return null;
+  const[y,mo,d]=c.hearing.split('-');const[h,mi]=(c.htime||'09:00').split(':').map(Number);
+  const pad=n=>String(n).padStart(2,'0');
+  const start=`${y}${pad(mo)}${pad(d)}T${pad(h)}${pad(mi)}00`;
+  const end=`${y}${pad(mo)}${pad(d)}T${pad(h+1)}${pad(mi)}00`;
+  const title=encodeURIComponent(`Court Hearing — ${c.tenant||c.cnum||'Case'}`);
+  const loc=encodeURIComponent(c.zid?`Via Zoom — Meeting ID# ${c.zid}`:(c.address||c.court||''));
+  const details=encodeURIComponent([c.cnum&&`Case #: ${c.cnum}`,c.court&&`Court: ${c.court}`,c.judge&&`Judge: ${c.judge}`,c.ctype&&`Type: ${c.ctype}`,c.address&&`Address: ${c.address}`,c.zid&&`Zoom Meeting ID: ${c.zid}`,c.zpw&&`Passcode: ${c.zpw}`,c.zlink&&`Join: ${c.zlink}`,c.notes&&`\nNotes: ${c.notes}`].filter(Boolean).join('\n'));
+  return`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${details}&location=${loc}`;
+}
+
+// ── Metrics ──────────────────────────────────────────────────
+function updateMetrics(){
+  const t7=new Date(todayDate);t7.setDate(todayDate.getDate()+7);
+  document.getElementById('m0').textContent=cases.length;
+  document.getElementById('m1').textContent=cases.filter(c=>!['Closed','Dismissed'].includes(c.status)).length;
+  document.getElementById('m2').textContent=cases.filter(c=>{if(!c.hearing)return false;const d=new Date(c.hearing+'T00:00:00');return d>=todayDate&&d<=t7;}).length;
+  document.getElementById('m3').textContent=cases.filter(c=>{if(!c.hearing||['Closed','Dismissed'].includes(c.status))return false;return new Date(c.hearing+'T00:00:00')<todayDate;}).length;
+  document.getElementById('m4').textContent=cases.filter(c=>['Closed','Dismissed'].includes(c.status)).length;
+}
+function render(){updateMetrics();if(curView==='docket')renderDocket();else if(curView==='calendar')renderCalendar();else renderActivity();}
+
+// ── Docket ───────────────────────────────────────────────────
+function renderDocket(){
+  const q=document.getElementById('s-search').value.toLowerCase();
+  const fs=document.getElementById('s-status').value,ft=document.getElementById('s-type').value,fp=document.getElementById('s-prop').value;
+  let list=cases.filter(c=>{const txt=[c.tenant,c.cnum,c.address,c.court,c.judge,c.prop,c.notes,c.anotes].join(' ').toLowerCase();return txt.includes(q)&&(!fs||c.status===fs)&&(!ft||c.ctype===ft)&&(!fp||c.prop===fp);});
+  list.sort((a,b)=>sortAsc?(a.filed||'').localeCompare(b.filed||''):(b.filed||'').localeCompare(a.filed||''));
+  const el=document.getElementById('docket-list');
+  if(!list.length){el.innerHTML=`<div class="empty-state"><div class="ei">⚖</div><div class="et">${cases.length?'No cases match filters':'No cases yet'}</div><div class="es">${cases.length?'Try adjusting filters.':'Click <strong>+ New Case</strong> or upload a summons.'}</div></div>`;return;}
+  el.innerHTML=list.map(c=>{
+    const amt=c.amount?'$'+Number(c.amount).toLocaleString():'';
+    const ht=c.htime?' @ '+fmtTime(c.htime):'';
+    const zl=c.zid?`📹 ${c.vplat||'Zoom'} · ID: <strong>${c.zid}</strong>${c.zpw?' · Pass: '+c.zpw:''}${c.zlink?` · <a href="${c.zlink}" target="_blank" onclick="event.stopPropagation()">Join ↗</a>`:''}`:'';
+    const gcalUrl=buildGcalUrl(c);
+    return`<div class="case-card" onclick="openModal('${c.id}')">
+      <div class="cr1"><span class="cname">${c.tenant||'Unnamed'}</span><span class="badge s-${sKey(c.status)}">${sLabel(c.status)}</span>${urgTag(c)}</div>
+      <div class="cr2">
+        ${c.cnum?`<span class="mf"><span class="mk">Case #</span>${c.cnum}</span>`:''}
+        ${c.ctype?`<span class="mf"><span class="mk">Type</span>${c.ctype}</span>`:''}
+        ${c.court?`<span class="mf"><span class="mk">Court</span>${c.court}</span>`:''}
+        ${c.filed?`<span class="mf"><span class="mk">Filed</span>${fmtDate(c.filed)}</span>`:''}
+        ${c.hearing?`<span class="mf"><span class="mk">Hearing</span>${fmtDate(c.hearing)}${ht}</span>`:''}
+        ${c.judge?`<span class="mf"><span class="mk">Judge</span>${c.judge}</span>`:''}
+        ${amt?`<span class="mf"><span class="mk">Amount</span>${amt}</span>`:''}
+      </div>
+      <div class="cr3">
+        ${c.address?`<span>${c.address}</span>`:''}
+        ${c.prop&&c.prop!==c.address?`<span>📍 ${c.prop}</span>`:''}
+        ${c.smethod?`<span>Served: ${c.smethod}${c.sdate?' ('+fmtDate(c.sdate)+')':''}</span>`:''}
+      </div>
+      ${zl?`<div class="zoom-info">${zl}</div>`:''}
+      ${c.anotes?`<div style="font-size:12px;color:var(--text2);font-style:italic;margin-bottom:4px;">📝 ${c.anotes.slice(0,130)}${c.anotes.length>130?'…':''}</div>`:''}
+      <div class="card-actions" onclick="event.stopPropagation()">
+        ${gcalUrl?`<a class="card-gcal" href="${gcalUrl}" target="_blank">📅 Add to Google Calendar</a>`:''}
+        <button class="card-edit" onclick="openModal('${c.id}')">Edit</button>
+        ${c.updated_by?`<span class="edited-by">Updated by ${c.updated_by} ${fmtRelative(c.updated_at)}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Calendar ─────────────────────────────────────────────────
+function setView(v){
+  curView=v;
+  document.getElementById('v-docket').style.display=v==='docket'?'flex':'none';
+  document.getElementById('v-cal').style.display=v==='calendar'?'flex':'none';
+  document.getElementById('v-activity').style.display=v==='activity'?'block':'none';
+  document.querySelectorAll('.ntab').forEach((t,i)=>t.classList.toggle('on',i===(['docket','calendar','activity'].indexOf(v))));
+  if(v==='activity')renderActivity(); else render();
+}
+const SCOL={Filed:'#E6F1FB,#0C447C',Pending:'#FAEEDA,#633806',Scheduled:'#EAF3DE,#27500A',Adjourned:'#FBEAF0,#72243E',Default:'#EEEDFE,#3C3489',Judgment:'#EEEDFE,#26215C',Dismissed:'#F1EFE8,#5F5E5A',Closed:'#F1EFE8,#444441'};
+function renderCalendar(){
+  const MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-title').textContent=MN[calMonth]+' '+calYear;
+  const first=new Date(calYear,calMonth,1).getDay(),dim=new Date(calYear,calMonth+1,0).getDate();
+  const cells=[];
+  for(let i=0;i<first;i++)cells.push({d:0,om:true});
+  for(let d=1;d<=dim;d++)cells.push({d,om:false});
+  while(cells.length%7!==0)cells.push({d:0,om:true});
+  document.getElementById('cal-grid').innerHTML=cells.map(cell=>{
+    if(cell.om)return'<div class="cal-cell om"></div>';
+    const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(cell.d).padStart(2,'0')}`;
+    const dc=cases.filter(c=>c.hearing===ds);
+    const chips=dc.map(c=>{const[bg,fg]=(SCOL[c.status]||'#F1EFE8,#444441').split(',');return`<div class="cal-chip" style="background:${bg};color:${fg};" onclick="openModal('${c.id}')">${c.tenant||c.cnum||'Case'}</div>`;}).join('');
+    return`<div class="cal-cell${ds===todayStr?' today':''}"><div class="day-num">${cell.d}</div>${chips}</div>`;
+  }).join('');
+}
+function calNav(d){calMonth+=d;if(calMonth<0){calMonth=11;calYear--;}if(calMonth>11){calMonth=0;calYear++;}renderCalendar();}
+function calToday(){calYear=todayDate.getFullYear();calMonth=todayDate.getMonth();renderCalendar();}
+function toggleSort(){sortAsc=!sortAsc;document.getElementById('sort-lbl').textContent=(sortAsc?'↑':'↓')+' Date';renderDocket();}
+
+// ── Activity ─────────────────────────────────────────────────
+async function renderActivity(){
+  const el=document.getElementById('activity-list');
+  el.innerHTML='<span style="color:var(--text3);font-size:13px;">Loading…</span>';
+  try{
+    const rows=await sbGet('activity_log','select=*&order=ts.desc&limit=60');
+    if(!rows.length){el.innerHTML='<div style="color:var(--text3);font-size:13px;padding:20px 0;">No activity yet.</div>';return;}
+    const icons={created:'✚',updated:'✎',deleted:'✕'};
+    const cls={created:'act-created',updated:'act-updated',deleted:'act-deleted'};
+    el.innerHTML=rows.map(r=>`<div class="act-row"><div class="act-icon ${cls[r.action]||'act-updated'}">${icons[r.action]||'•'}</div><div><div class="act-title">${r.user_name||'Unknown'} ${r.action} a case</div><div class="act-meta">${r.details||''} · ${fmtRelative(r.ts)}</div></div></div>`).join('');
+  }catch(e){el.innerHTML='<div style="color:var(--text3);">Could not load activity.</div>';}
+}
+
+// ── Modal ────────────────────────────────────────────────────
+function refreshGcalBanner(){document.getElementById('gcal-banner').style.display=document.getElementById('f-hearing').value?'flex':'none';}
+function openModal(id){
+  editId=id;
+  document.getElementById('m-title').textContent=id?'Edit case':'New case';
+  document.getElementById('m-del').style.display=id?'':'none';
+  document.getElementById('upzone').style.display='';
+  document.getElementById('extr-msg').style.display='none';
+  mTab(0);
+  const c=id?cases.find(x=>x.id===id):{};
+  const g=i=>document.getElementById(i);
+  g('f-tenant').value=c.tenant||'';g('f-addr').value=c.address||'';g('f-prop').value=c.prop||'';
+  g('f-cnum').value=c.cnum||'';g('f-ctype').value=c.ctype||'Eviction';g('f-court').value=c.court||'';
+  g('f-judge').value=c.judge||'';g('f-filed').value=c.filed||'';g('f-hearing').value=c.hearing||'';
+  g('f-htime').value=c.htime||'';g('f-status').value=c.status||'Filed';g('f-amt').value=c.amount||'';
+  g('f-vplat').value=c.vplat||'';g('f-zid').value=c.zid||'';g('f-zpw').value=c.zpw||'';g('f-zlink').value=c.zlink||'';
+  g('f-sdate').value=c.sdate||'';g('f-smethod').value=c.smethod||'';g('f-server').value=c.server_name||'';g('f-rof').value=c.rof||'';
+  g('f-anotes').value=c.anotes||'';g('f-notes').value=c.notes||'';
+  refreshGcalBanner();
+  document.getElementById('overlay').style.display='flex';
+  setTimeout(()=>g('f-tenant').focus(),60);
+}
+function closeModal(){document.getElementById('overlay').style.display='none';editId=null;}
+function mTab(i){document.querySelectorAll('.mtab').forEach((t,idx)=>t.classList.toggle('on',idx===i));document.querySelectorAll('.tp').forEach((p,idx)=>p.classList.toggle('on',idx===i));}
+function createCalEvent(){const c={tenant:document.getElementById('f-tenant').value,cnum:document.getElementById('f-cnum').value,court:document.getElementById('f-court').value,judge:document.getElementById('f-judge').value,ctype:document.getElementById('f-ctype').value,address:document.getElementById('f-addr').value,hearing:document.getElementById('f-hearing').value,htime:document.getElementById('f-htime').value,zid:document.getElementById('f-zid').value,zpw:document.getElementById('f-zpw').value,zlink:document.getElementById('f-zlink').value,notes:document.getElementById('f-notes').value};const url=buildGcalUrl(c);if(url)window.open(url,'_blank');}
+
+async function saveCase(){
+  const g=i=>document.getElementById(i).value;
+  if(!g('f-tenant').trim()&&!g('f-cnum').trim()){alert('Enter a tenant name or case number.');return;}
+  const now=new Date().toISOString();
+  const c={id:editId||(Date.now().toString(36)+Math.random().toString(36).slice(2,5)),tenant:g('f-tenant').trim(),address:g('f-addr'),prop:g('f-prop'),cnum:g('f-cnum'),ctype:g('f-ctype'),court:g('f-court'),judge:g('f-judge'),filed:g('f-filed')||null,hearing:g('f-hearing')||null,htime:g('f-htime')||null,status:g('f-status'),amount:g('f-amt')||null,vplat:g('f-vplat'),zid:g('f-zid'),zpw:g('f-zpw'),zlink:g('f-zlink'),sdate:g('f-sdate')||null,smethod:g('f-smethod'),server_name:g('f-server'),rof:g('f-rof')||null,anotes:g('f-anotes'),notes:g('f-notes'),updated_by:currentUser,updated_at:now};
+  try{
+    if(editId){await sbPatch('cases',editId,c);}else{c.created_at=now;await sbPost('cases',c);}
+    await sbPost('activity_log',{case_id:c.id,action:editId?'updated':'created',user_name:currentUser,details:`${c.tenant||'Unknown'} — ${c.cnum||'No case #'}`});
+    await loadCases();closeModal();
+  }catch(e){alert('Save failed: '+e.message);}
+}
+
+async function deleteCase(){
+  if(!editId||!confirm('Delete this case permanently?'))return;
+  const c=cases.find(x=>x.id===editId);
+  try{
+    await sbDelete('cases',editId);
+    await sbPost('activity_log',{case_id:editId,action:'deleted',user_name:currentUser,details:`${c?.tenant||'Unknown'} — ${c?.cnum||''}`});
+    await loadCases();closeModal();
+  }catch(e){alert('Delete failed: '+e.message);}
+}
+
+// ── Export CSV ───────────────────────────────────────────────
+function exportCSV(){
+  if(!cases.length){alert('No cases to export.');return;}
+  const H=['Tenant','Address','Property','Case #','Type','Court','Judge','Filed','Hearing','Hearing Time','Status','Amount','Platform','Meeting ID','Passcode','Join Link','Served Date','Service Method','Process Server','Return of Service','Attorney Notes','Notes','Updated By'];
+  const R=cases.map(c=>[c.tenant,c.address,c.prop,c.cnum,c.ctype,c.court,c.judge,c.filed,c.hearing,c.htime,c.status,c.amount,c.vplat,c.zid,c.zpw,c.zlink,c.sdate,c.smethod,c.server_name,c.rof,c.anotes,c.notes,c.updated_by].map(v=>`"${(v||'').replace(/"/g,'""')}"`));
+  const csv=[H.join(','),...R.map(r=>r.join(','))].join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);a.download='case-docket-'+todayStr+'.csv';a.click();
+}
+
+// ── Settings ─────────────────────────────────────────────────
+function openSettings(){document.getElementById('api-key-input').value=localStorage.getItem(AK)||'';document.getElementById('settings-overlay').style.display='flex';}
+function closeSettings(){document.getElementById('settings-overlay').style.display='none';}
+function saveApiKey(){const k=document.getElementById('api-key-input').value.trim();if(k)localStorage.setItem(AK,k);else localStorage.removeItem(AK);alert(k?'API key saved.':'Cleared.');}
+function toggleApiKeyVis(){const i=document.getElementById('api-key-input');i.type=i.type==='password'?'text':'password';}
+
+// ── AI Extraction ─────────────────────────────────────────────
+function showExtrMsg(html,type){const el=document.getElementById('extr-msg');const s={loading:'background:var(--surface2);color:var(--text2)',success:'background:#EAF3DE;color:#27500A',error:'background:#FAECE7;color:#993C1D'};el.style.cssText=s[type]||s.loading;el.innerHTML=html;el.style.display='flex';}
+async function handleUpload(file){
+  if(!file)return;
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(!['pdf','jpg','jpeg','png'].includes(ext)){alert('Upload a PDF, JPG, or PNG.');return;}
+  const apiKey=localStorage.getItem(AK);
+  if(!apiKey){alert('Open Settings (⚙) and enter your Anthropic API key to enable AI extraction.');return;}
+  document.getElementById('upzone').style.display='none';
+  showExtrMsg('<span class="spin">⟳</span>&nbsp; Extracting case details…','loading');
+  try{
+    const base64=await toBase64(file);
+    const isPDF=file.type==='application/pdf'||ext==='pdf';
+    const block=isPDF?{type:'document',source:{type:'base64',media_type:'application/pdf',data:base64}}:{type:'image',source:{type:'base64',media_type:file.type||'image/jpeg',data:base64}};
+    const prompt=`Extract data from this Michigan landlord-tenant court document. Look at every part including headers, stamps, handwritten text, and all printed fields. Return ONLY a JSON object — no markdown.\n\n{"tenant":"full defendant name","address":"full property address","casenum":"case/docket number","court":"full court name","judge":"judge or magistrate name","filed":"YYYY-MM-DD","hearing":"YYYY-MM-DD","hearingTime":"HH:MM 24h (e.g. 1:30 P.M. = 13:30)","caseType":"Eviction|Money Judgment|Land Contract|Trespass|Other","amount":null,"vplatform":"Zoom/Teams/etc or null","zoomId":"meeting ID — search for Meeting ID# anywhere in the document","zoomPassword":"passcode or null","joinLink":"full https URL or null"}`;
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:[block,{type:'text',text:prompt}]}]})});
+    if(!res.ok){const err=await res.json();throw new Error(err.error?.message||'API error '+res.status);}
+    const data=await res.json();
+    const raw=data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+    const info=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    const g=i=>document.getElementById(i);
+    if(info.tenant)g('f-tenant').value=info.tenant;if(info.address)g('f-addr').value=info.address;
+    if(info.casenum)g('f-cnum').value=info.casenum;if(info.court)g('f-court').value=info.court;
+    if(info.judge)g('f-judge').value=info.judge;if(info.filed)g('f-filed').value=info.filed;
+    if(info.hearing)g('f-hearing').value=info.hearing;if(info.hearingTime)g('f-htime').value=info.hearingTime;
+    if(info.caseType)g('f-ctype').value=info.caseType;if(info.amount)g('f-amt').value=info.amount;
+    if(info.vplatform)g('f-vplat').value=info.vplatform;if(info.zoomId)g('f-zid').value=info.zoomId;
+    if(info.zoomPassword)g('f-zpw').value=info.zoomPassword;if(info.joinLink)g('f-zlink').value=info.joinLink;
+    if(!editId)g('f-status').value='Scheduled';
+    refreshGcalBanner();
+    showExtrMsg('✓ Extracted — review fields and save','success');
+  }catch(e){showExtrMsg('⚠ Extraction failed: '+e.message,'error');document.getElementById('upzone').style.display='';console.error(e);}
+}
+function toBase64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=()=>rej(new Error('Read failed'));r.readAsDataURL(file);});}
+
+// ── Init ─────────────────────────────────────────────────────
+calYear=todayDate.getFullYear();calMonth=todayDate.getMonth();
+updateWhoBadge();
+if(!currentUser)setTimeout(openWho,600);
+loadCases();
+</script>
+</body>
+</html>
