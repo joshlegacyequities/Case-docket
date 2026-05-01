@@ -335,14 +335,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="modal-hdr"><h3>Settings</h3><button class="btn icon" onclick="closeSettings()">✕</button></div>
     <div class="modal-body">
       <div style="margin-bottom:22px;">
-        <h4 style="font-size:14px;font-weight:600;margin-bottom:10px;">Anthropic API key — AI extraction</h4>
-        <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">Each team member enters their own key. Stored in your browser only — used only for summons extraction.</p>
+        <h4 style="font-size:14px;font-weight:600;margin-bottom:6px;">Anthropic API key — AI extraction</h4>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">Saved once to the shared database — the whole team gets AI summons extraction automatically. Only Josh needs to set this.</p>
         <div style="display:flex;gap:8px;">
           <input type="password" id="api-key-input" placeholder="sk-ant-api03-…" autocomplete="off" style="flex:1;font-size:13px;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);font-family:inherit;">
           <button class="btn" onclick="toggleApiKeyVis()">Show</button>
-          <button class="btn pk" onclick="saveApiKey()">Save</button>
+          <button class="btn pk" onclick="saveApiKey()">Save for everyone</button>
         </div>
-        <div style="font-size:12px;color:var(--text3);margin-top:8px;">Get a key at <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:#185FA5;">console.anthropic.com</a></div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+          <span class="sdot" id="ak-dot" style="width:7px;height:7px;"></span>
+          <span id="ak-status" style="font-size:12px;color:var(--text3);">Checking…</span>
+        </div>
+        <div style="font-size:12px;color:var(--text3);margin-top:6px;">Get a key at <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:#185FA5;">console.anthropic.com</a></div>
       </div>
       <div style="margin-bottom:22px;">
         <h4 style="font-size:14px;font-weight:600;margin-bottom:8px;">Google Calendar</h4>
@@ -386,6 +390,7 @@ async function sbDelete(table, id) {
 
 // ── State ─────────────────────────────────────────────────────
 const AK = 'legacy-api-key';
+let sharedAnthropicKey = '';
 let cases = [], sortAsc = false, curView = 'docket', editId = null;
 let calYear, calMonth;
 let currentUser = localStorage.getItem('docket-user') || '';
@@ -613,9 +618,48 @@ function exportCSV(){
 }
 
 // ── Settings ─────────────────────────────────────────────────
-function openSettings(){document.getElementById('api-key-input').value=localStorage.getItem(AK)||'';document.getElementById('settings-overlay').style.display='flex';}
+function openSettings(){
+  document.getElementById('api-key-input').value = sharedAnthropicKey ? '••••••••••••••••' : '';
+  document.getElementById('settings-overlay').style.display='flex';
+  updateAkStatus(!!sharedAnthropicKey);
+}
 function closeSettings(){document.getElementById('settings-overlay').style.display='none';}
-function saveApiKey(){const k=document.getElementById('api-key-input').value.trim();if(k)localStorage.setItem(AK,k);else localStorage.removeItem(AK);alert(k?'API key saved.':'Cleared.');}
+async function saveApiKey(){
+  const k=document.getElementById('api-key-input').value.trim();
+  if(!k||k.startsWith('•')){alert('Paste your actual API key first.');return;}
+  try {
+    // Upsert into settings table
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/settings`, {
+      method:'POST',
+      headers:{...SB_HEADERS,'Prefer':'resolution=merge-duplicates'},
+      body:JSON.stringify({key:'anthropic_key',value:k})
+    });
+    if(!r.ok) throw new Error(await r.text());
+    sharedAnthropicKey = k;
+    updateAkStatus(true);
+    alert('✓ API key saved — AI extraction now works for the whole team.');
+  } catch(e) {
+    // Fallback to localStorage
+    localStorage.setItem(AK,k);
+    sharedAnthropicKey = k;
+    updateAkStatus(true);
+    alert('Saved locally. To share with team, make sure the settings table exists in Supabase.');
+  }
+}
+function updateAkStatus(hasKey){
+  const dot=document.getElementById('ak-dot');
+  const label=document.getElementById('ak-status');
+  if(!dot||!label)return;
+  dot.style.background=hasKey?'#639922':'#d93025';
+  label.textContent=hasKey?'API key set — AI extraction enabled for everyone':'No API key — add one above';
+}
+async function loadSharedApiKey(){
+  try{
+    const rows=await sbGet('settings','select=value&key=eq.anthropic_key');
+    if(rows&&rows.length>0&&rows[0].value){sharedAnthropicKey=rows[0].value;}
+    else{sharedAnthropicKey=localStorage.getItem(AK)||'';}
+  }catch(e){sharedAnthropicKey=localStorage.getItem(AK)||'';}
+}
 function toggleApiKeyVis(){const i=document.getElementById('api-key-input');i.type=i.type==='password'?'text':'password';}
 
 // ── AI Extraction ─────────────────────────────────────────────
@@ -624,8 +668,8 @@ async function handleUpload(file){
   if(!file)return;
   const ext=file.name.split('.').pop().toLowerCase();
   if(!['pdf','jpg','jpeg','png'].includes(ext)){alert('Upload a PDF, JPG, or PNG.');return;}
-  const apiKey=localStorage.getItem(AK);
-  if(!apiKey){alert('Open Settings (⚙) and enter your Anthropic API key to enable AI extraction.');return;}
+  const apiKey = sharedAnthropicKey || localStorage.getItem(AK);
+  if(!apiKey){alert('No API key set. Go to Settings (⚙) and add your Anthropic key — it will work for everyone once saved.');return;}
   document.getElementById('upzone').style.display='none';
   showExtrMsg('<span class="spin">⟳</span>&nbsp; Extracting case details…','loading');
   try{
@@ -657,7 +701,7 @@ function toBase64(file){return new Promise((res,rej)=>{const r=new FileReader();
 calYear=todayDate.getFullYear();calMonth=todayDate.getMonth();
 updateWhoBadge();
 if(!currentUser)setTimeout(openWho,600);
-loadCases();
+loadSharedApiKey().then(loadCases);
 </script>
 </body>
 </html>
