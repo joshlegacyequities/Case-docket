@@ -67,7 +67,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .mf .mk{font-size:11px;color:var(--text3);margin-right:3px;}
 .cr3{font-size:12px;color:var(--text3);display:flex;gap:16px;flex-wrap:wrap;margin-bottom:5px;}
 .zoom-info{font-size:12px;color:#185FA5;margin-bottom:5px;}.zoom-info a{color:inherit;}
-.judgment-banner{font-size:12px;background:#EEEDFE;color:#3C3489;border-radius:6px;padding:8px 11px;margin-bottom:5px;line-height:1.6;}
+.judgment-banner{font-size:12px;background:#EEEDFE;color:#3C3489;border-radius:6px;padding:10px 12px;margin-bottom:5px;line-height:1.6;}
+.jb-row{display:flex;gap:14px;flex-wrap:wrap;align-items:center;}
+.jb-type{font-weight:600;text-transform:capitalize;}
+.jb-orders{color:#3C3489;margin-top:5px;font-weight:500;}
+.jb-payplan{color:#5547A8;margin-top:4px;font-size:11px;}
 .jorders{color:#5547A8;display:block;margin-top:3px;}
 .card-actions{display:flex;gap:7px;margin-top:9px;padding-top:9px;border-top:1px solid var(--border);align-items:center;}
 .card-gcal{height:26px;padding:0 10px;font-size:11px;font-weight:500;border-radius:var(--r);background:#1a73e8;color:#fff;border:none;cursor:pointer;display:flex;align-items:center;gap:5px;text-decoration:none;}
@@ -168,7 +172,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <nav class="nav">
     <div class="brand">⚖ Case Docket</div>
     <div class="nav-tabs">
-      <button class="ntab on" onclick="setView('docket')">Docket</button>
+      <button class="ntab on" onclick="setView('docket')">📋 Upcoming Docket</button>
+      <button class="ntab" onclick="setView('judgments')">⚖ Judgments</button>
+      <button class="ntab" onclick="setView('all')">All Cases</button>
       <button class="ntab" onclick="setView('calendar')">Calendar</button>
       <button class="ntab" onclick="setView('activity')">Activity</button>
     </div>
@@ -183,22 +189,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </nav>
 
   <div class="metrics-bar">
-    <div class="mc"><div class="ml">Total filed</div><div class="mv" id="m0">—</div></div>
-    <div class="mc"><div class="ml">Active</div><div class="mv" id="m1">—</div></div>
-    <div class="mc"><div class="ml">Upcoming (7d)</div><div class="mv" id="m2">—</div></div>
-    <div class="mc"><div class="ml">Overdue</div><div class="mv" id="m3">—</div></div>
-    <div class="mc"><div class="ml">Closed</div><div class="mv" id="m4">—</div></div>
+    <div class="mc"><div class="ml">Total cases</div><div class="mv" id="m0">—</div></div>
+    <div class="mc"><div class="ml">Upcoming hearings</div><div class="mv" id="m1">—</div></div>
+    <div class="mc"><div class="ml">Hearing this week</div><div class="mv" id="m2">—</div></div>
+    <div class="mc"><div class="ml">Judgments</div><div class="mv" id="m3">—</div></div>
+    <div class="mc"><div class="ml">Judgment total owed</div><div class="mv" id="m4">—</div></div>
   </div>
 
-  <!-- DOCKET VIEW -->
+  <!-- UPCOMING DOCKET VIEW -->
   <div id="v-docket" style="flex:1;overflow:hidden;display:flex;flex-direction:column;">
     <div class="toolbar">
       <input id="s-search" placeholder="Search tenant, case #, court, address…" oninput="renderDocket()">
-      <select id="s-status" onchange="renderDocket()">
-        <option value="">All statuses</option><option>Filed</option><option>Pending</option>
-        <option>Scheduled</option><option>Adjourned</option><option>Default</option>
-        <option>Judgment</option><option>Dismissed</option><option>Closed</option>
-      </select>
       <select id="s-type" onchange="renderDocket()">
         <option value="">All types</option><option>Eviction</option><option>Money Judgment</option>
         <option>Land Contract</option><option>Trespass</option><option>Other</option>
@@ -208,9 +209,47 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <option>Creekwood Apartments</option><option>Legacy Flats</option><option>Legacy Manor</option>
         <option>Legacy Place</option><option>Verwood Apartments</option>
       </select>
-      <button class="btn" onclick="toggleSort()">Sort <span id="sort-lbl">↓ Date</span></button>
+      <select id="s-dstatus" onchange="renderDocket()">
+        <option value="">All active statuses</option><option>Filed</option><option>Pending</option>
+        <option>Scheduled</option><option>Adjourned</option><option>Default</option>
+      </select>
+      <button class="btn" onclick="toggleSort()">Sort <span id="sort-lbl">↑ Hearing</span></button>
     </div>
     <div class="docket-wrap" id="docket-list"></div>
+  </div>
+
+  <!-- JUDGMENTS VIEW -->
+  <div id="v-judgments" style="flex:1;overflow:hidden;display:flex;flex-direction:column;display:none;">
+    <div class="toolbar">
+      <input id="j-search" placeholder="Search tenant, case #, address…" oninput="renderJudgments()">
+      <select id="j-type" onchange="renderJudgments()">
+        <option value="">All types</option><option>Consent</option><option>Default</option><option>Hearing</option>
+      </select>
+      <select id="j-prop" onchange="renderJudgments()">
+        <option value="">All properties</option><option>Legacy on The River</option>
+        <option>Creekwood Apartments</option><option>Legacy Flats</option><option>Legacy Manor</option>
+        <option>Legacy Place</option><option>Verwood Apartments</option>
+      </select>
+    </div>
+    <div class="docket-wrap" id="judgment-list"></div>
+  </div>
+
+  <!-- ALL CASES VIEW -->
+  <div id="v-all" style="flex:1;overflow:hidden;display:flex;flex-direction:column;display:none;">
+    <div class="toolbar">
+      <input id="a-search" placeholder="Search all cases…" oninput="renderAll()">
+      <select id="a-status" onchange="renderAll()">
+        <option value="">All statuses</option><option>Filed</option><option>Pending</option>
+        <option>Scheduled</option><option>Adjourned</option><option>Default</option>
+        <option>Judgment</option><option>Dismissed</option><option>Closed</option>
+      </select>
+      <select id="a-prop" onchange="renderAll()">
+        <option value="">All properties</option><option>Legacy on The River</option>
+        <option>Creekwood Apartments</option><option>Legacy Flats</option><option>Legacy Manor</option>
+        <option>Legacy Place</option><option>Verwood Apartments</option>
+      </select>
+    </div>
+    <div class="docket-wrap" id="all-list"></div>
   </div>
 
   <!-- CALENDAR VIEW -->
@@ -489,62 +528,131 @@ function buildGcalUrl(c){
 // ── Metrics ──────────────────────────────────────────────────
 function updateMetrics(){
   const t7=new Date(todayDate);t7.setDate(todayDate.getDate()+7);
+  const activeSt=['Filed','Pending','Scheduled','Adjourned','Default'];
+  const active=cases.filter(c=>activeSt.includes(c.status));
+  const upcoming=active.filter(c=>{if(!c.hearing)return false;const d=new Date(c.hearing+'T00:00:00');return d>=todayDate&&d<=t7;});
+  const judgments=cases.filter(c=>c.status==='Judgment'||c.jtotal);
+  const totalOwed=judgments.reduce((s,c)=>s+(parseFloat(c.jtotal)||0),0);
   document.getElementById('m0').textContent=cases.length;
-  document.getElementById('m1').textContent=cases.filter(c=>!['Closed','Dismissed'].includes(c.status)).length;
-  document.getElementById('m2').textContent=cases.filter(c=>{if(!c.hearing)return false;const d=new Date(c.hearing+'T00:00:00');return d>=todayDate&&d<=t7;}).length;
-  document.getElementById('m3').textContent=cases.filter(c=>{if(!c.hearing||['Closed','Dismissed'].includes(c.status))return false;return new Date(c.hearing+'T00:00:00')<todayDate;}).length;
-  document.getElementById('m4').textContent=cases.filter(c=>['Closed','Dismissed'].includes(c.status)).length;
+  document.getElementById('m1').textContent=active.length;
+  document.getElementById('m2').textContent=upcoming.length;
+  document.getElementById('m3').textContent=judgments.length;
+  document.getElementById('m4').textContent=totalOwed>0?'$'+totalOwed.toLocaleString('en-US',{maximumFractionDigits:0}):'—';
 }
-function render(){updateMetrics();if(curView==='docket')renderDocket();else if(curView==='calendar')renderCalendar();else renderActivity();}
+function render(){updateMetrics();if(curView==='docket')renderDocket();else if(curView==='judgments')renderJudgments();else if(curView==='all')renderAll();else if(curView==='calendar')renderCalendar();else renderActivity();}
 
-// ── Docket ───────────────────────────────────────────────────
+// ── Card builder (shared) ─────────────────────────────────────
+function buildCard(c, showJudgment=false){
+  const amt=c.amount?'$'+Number(c.amount).toLocaleString():'';
+  const ht=c.htime?' @ '+fmtTime(c.htime):'';
+  const zl=c.zid?`📹 ${c.vplat||'Zoom'} · ID: <strong>${c.zid}</strong>${c.zpw?' · Pass: '+c.zpw:''}${c.zlink?` · <a href="${c.zlink}" target="_blank" onclick="event.stopPropagation()">Join ↗</a>`:''}`:'';
+  const gcalUrl=buildGcalUrl(c);
+  return `<div class="case-card" onclick="openModal('${c.id}')">
+    <div class="cr1"><span class="cname">${c.tenant||'Unnamed'}</span><span class="badge s-${sKey(c.status)}">${sLabel(c.status)}</span>${urgTag(c)}</div>
+    <div class="cr2">
+      ${c.cnum?`<span class="mf"><span class="mk">Case #</span>${c.cnum}</span>`:''}
+      ${c.ctype?`<span class="mf"><span class="mk">Type</span>${c.ctype}</span>`:''}
+      ${c.court?`<span class="mf"><span class="mk">Court</span>${c.court}</span>`:''}
+      ${c.filed?`<span class="mf"><span class="mk">Filed</span>${fmtDate(c.filed)}</span>`:''}
+      ${c.hearing?`<span class="mf"><span class="mk">Hearing</span>${fmtDate(c.hearing)}${ht}</span>`:''}
+      ${c.judge?`<span class="mf"><span class="mk">Judge</span>${c.judge}</span>`:''}
+      ${amt?`<span class="mf"><span class="mk">Amount</span>${amt}</span>`:''}
+    </div>
+    <div class="cr3">
+      ${c.address?`<span>${c.address}</span>`:''}
+      ${c.prop&&c.prop!==c.address?`<span>📍 ${c.prop}</span>`:''}
+      ${c.smethod?`<span>Served: ${c.smethod}${c.sdate?' ('+fmtDate(c.sdate)+')':''}</span>`:''}
+    </div>
+    ${zl?`<div class="zoom-info">${zl}</div>`:''}
+    ${showJudgment&&(c.jtotal||c.jorders)?`<div class="judgment-banner">
+      <div class="jb-row">
+        ${c.jtype?`<span class="jb-type">${c.jtype} judgment</span>`:''}
+        ${c.jdate?`<span>Entered ${fmtDate(c.jdate)}</span>`:''}
+        ${c.jtotal?`<span>Total: <strong>$${Number(c.jtotal).toLocaleString()}</strong></span>`:''}
+        ${c.jrent?`<span>Rent: $${Number(c.jrent).toLocaleString()}</span>`:''}
+        ${c.jcosts?`<span>Costs: $${Number(c.jcosts).toLocaleString()}</span>`:''}
+      </div>
+      ${c.jpov?`<div class="jb-row" style="margin-top:4px;">⏰ Pay or vacate by: <strong>${fmtDate(c.jpov)}</strong></div>`:''}
+      ${c.jorders?`<div class="jb-orders">📋 ${c.jorders}</div>`:''}
+      ${c.jpayplan?`<div class="jb-payplan">💬 ${c.jpayplan}</div>`:''}
+    </div>`:''}
+    ${c.anotes?`<div style="font-size:12px;color:var(--text2);font-style:italic;margin-bottom:4px;">📝 ${c.anotes.slice(0,130)}${c.anotes.length>130?'…':''}</div>`:''}
+    <div class="card-actions" onclick="event.stopPropagation()">
+      ${gcalUrl?`<a class="card-gcal" href="${gcalUrl}" target="_blank">📅 Add to Google Calendar</a>`:''}
+      <button class="card-edit" onclick="openModal('${c.id}')">Edit</button>
+      ${c.updated_by?`<span class="edited-by">Updated by ${c.updated_by} ${fmtRelative(c.updated_at)}</span>`:''}
+    </div>
+  </div>`;
+}
+
+// ── Upcoming Docket ──────────────────────────────────────────
+const ACTIVE_STATUSES = ['Filed','Pending','Scheduled','Adjourned','Default'];
 function renderDocket(){
   const q=document.getElementById('s-search').value.toLowerCase();
-  const fs=document.getElementById('s-status').value,ft=document.getElementById('s-type').value,fp=document.getElementById('s-prop').value;
-  let list=cases.filter(c=>{const txt=[c.tenant,c.cnum,c.address,c.court,c.judge,c.prop,c.notes,c.anotes].join(' ').toLowerCase();return txt.includes(q)&&(!fs||c.status===fs)&&(!ft||c.ctype===ft)&&(!fp||c.prop===fp);});
-  list.sort((a,b)=>sortAsc?(a.filed||'').localeCompare(b.filed||''):(b.filed||'').localeCompare(a.filed||''));
+  const ft=document.getElementById('s-type').value;
+  const fp=document.getElementById('s-prop').value;
+  const fs=document.getElementById('s-dstatus').value;
+  let list=cases.filter(c=>{
+    if(!ACTIVE_STATUSES.includes(c.status))return false;
+    const txt=[c.tenant,c.cnum,c.address,c.court,c.judge,c.prop,c.notes].join(' ').toLowerCase();
+    return txt.includes(q)&&(!ft||c.ctype===ft)&&(!fp||c.prop===fp)&&(!fs||c.status===fs);
+  });
+  // Sort by hearing date ascending (soonest first) — cases without hearing go last
+  list.sort((a,b)=>{
+    if(!a.hearing&&!b.hearing)return 0;
+    if(!a.hearing)return 1;
+    if(!b.hearing)return -1;
+    return a.hearing.localeCompare(b.hearing);
+  });
   const el=document.getElementById('docket-list');
-  if(!list.length){el.innerHTML=`<div class="empty-state"><div class="ei">⚖</div><div class="et">${cases.length?'No cases match filters':'No cases yet'}</div><div class="es">${cases.length?'Try adjusting filters.':'Click <strong>+ New Case</strong> or upload a summons.'}</div></div>`;return;}
-  el.innerHTML=list.map(c=>{
-    const amt=c.amount?'$'+Number(c.amount).toLocaleString():'';
-    const ht=c.htime?' @ '+fmtTime(c.htime):'';
-    const zl=c.zid?`📹 ${c.vplat||'Zoom'} · ID: <strong>${c.zid}</strong>${c.zpw?' · Pass: '+c.zpw:''}${c.zlink?` · <a href="${c.zlink}" target="_blank" onclick="event.stopPropagation()">Join ↗</a>`:''}`:'';
-    const gcalUrl=buildGcalUrl(c);
-    return`<div class="case-card" onclick="openModal('${c.id}')">
-      <div class="cr1"><span class="cname">${c.tenant||'Unnamed'}</span><span class="badge s-${sKey(c.status)}">${sLabel(c.status)}</span>${urgTag(c)}</div>
-      <div class="cr2">
-        ${c.cnum?`<span class="mf"><span class="mk">Case #</span>${c.cnum}</span>`:''}
-        ${c.ctype?`<span class="mf"><span class="mk">Type</span>${c.ctype}</span>`:''}
-        ${c.court?`<span class="mf"><span class="mk">Court</span>${c.court}</span>`:''}
-        ${c.filed?`<span class="mf"><span class="mk">Filed</span>${fmtDate(c.filed)}</span>`:''}
-        ${c.hearing?`<span class="mf"><span class="mk">Hearing</span>${fmtDate(c.hearing)}${ht}</span>`:''}
-        ${c.judge?`<span class="mf"><span class="mk">Judge</span>${c.judge}</span>`:''}
-        ${amt?`<span class="mf"><span class="mk">Amount</span>${amt}</span>`:''}
-      </div>
-      <div class="cr3">
-        ${c.address?`<span>${c.address}</span>`:''}
-        ${c.prop&&c.prop!==c.address?`<span>📍 ${c.prop}</span>`:''}
-        ${c.smethod?`<span>Served: ${c.smethod}${c.sdate?' ('+fmtDate(c.sdate)+')':''}</span>`:''}
-      </div>
-      ${zl?`<div class="zoom-info">${zl}</div>`:''}
-      ${(c.jtotal||c.jorders)?`<div class="judgment-banner">⚖ Judgment${c.jtype?' · '+c.jtype:''}${c.jdate?' · '+fmtDate(c.jdate):''}${c.jtotal?' · Total: <strong>$'+Number(c.jtotal).toLocaleString()+'</strong>':''}${c.jrent?' (rent: $'+Number(c.jrent).toLocaleString()+')':''}${c.jpov?' · Pay/vacate by: '+fmtDate(c.jpov):''}${c.jorders?'<br><span class="jorders">📋 '+c.jorders+'</span>':''}</div>`:''}
-      ${c.anotes?`<div style="font-size:12px;color:var(--text2);font-style:italic;margin-bottom:4px;">📝 ${c.anotes.slice(0,130)}${c.anotes.length>130?'…':''}</div>`:''}
-      <div class="card-actions" onclick="event.stopPropagation()">
-        ${gcalUrl?`<a class="card-gcal" href="${gcalUrl}" target="_blank">📅 Add to Google Calendar</a>`:''}
-        <button class="card-edit" onclick="openModal('${c.id}')">Edit</button>
-        ${c.updated_by?`<span class="edited-by">Updated by ${c.updated_by} ${fmtRelative(c.updated_at)}</span>`:''}
-      </div>
-    </div>`;
-  }).join('');
+  if(!list.length){el.innerHTML=`<div class="empty-state"><div class="ei">📋</div><div class="et">${cases.length?'No active cases match filters':'No upcoming cases'}</div><div class="es">Active cases (Filed, Pending, Scheduled, Adjourned, Default) appear here.<br>Cases with judgments are in the <strong>Judgments</strong> tab.</div></div>`;return;}
+  el.innerHTML=list.map(c=>buildCard(c,false)).join('');
+}
+
+// ── Judgments ────────────────────────────────────────────────
+function renderJudgments(){
+  const q=document.getElementById('j-search').value.toLowerCase();
+  const jt=document.getElementById('j-type').value;
+  const jp=document.getElementById('j-prop').value;
+  let list=cases.filter(c=>{
+    if(c.status!=='Judgment'&&!c.jtotal&&!c.jorders)return false;
+    const txt=[c.tenant,c.cnum,c.address,c.court,c.judge,c.prop,c.jorders,c.jpayplan,c.anotes].join(' ').toLowerCase();
+    return txt.includes(q)&&(!jt||c.jtype===jt)&&(!jp||c.prop===jp);
+  });
+  // Sort by judgment date descending
+  list.sort((a,b)=>(b.jdate||b.filed||'').localeCompare(a.jdate||a.filed||''));
+  const el=document.getElementById('judgment-list');
+  if(!list.length){el.innerHTML=`<div class="empty-state"><div class="ei">⚖</div><div class="et">No judgments yet</div><div class="es">When a judgment is entered on a case, upload the DC-105 form<br>or edit the case and fill in the Judgment tab.</div></div>`;return;}
+  el.innerHTML=list.map(c=>buildCard(c,true)).join('');
+}
+
+// ── All Cases ─────────────────────────────────────────────────
+function renderAll(){
+  const q=document.getElementById('a-search').value.toLowerCase();
+  const fs=document.getElementById('a-status').value;
+  const fp=document.getElementById('a-prop').value;
+  let list=cases.filter(c=>{
+    const txt=[c.tenant,c.cnum,c.address,c.court,c.judge,c.prop,c.notes,c.anotes].join(' ').toLowerCase();
+    return txt.includes(q)&&(!fs||c.status===fs)&&(!fp||c.prop===fp);
+  });
+  list.sort((a,b)=>(b.filed||'').localeCompare(a.filed||''));
+  const el=document.getElementById('all-list');
+  if(!list.length){el.innerHTML=`<div class="empty-state"><div class="ei">📁</div><div class="et">No cases yet</div><div class="es">Click <strong>+ New Case</strong> or upload a summons to get started.</div></div>`;return;}
+  el.innerHTML=list.map(c=>buildCard(c,true)).join('');
 }
 
 // ── Calendar ─────────────────────────────────────────────────
 function setView(v){
   curView=v;
-  document.getElementById('v-docket').style.display=v==='docket'?'flex':'none';
-  document.getElementById('v-cal').style.display=v==='calendar'?'flex':'none';
-  document.getElementById('v-activity').style.display=v==='activity'?'block':'none';
-  document.querySelectorAll('.ntab').forEach((t,i)=>t.classList.toggle('on',i===(['docket','calendar','activity'].indexOf(v))));
+  const views=['docket','judgments','all','calendar','activity'];
+  views.forEach(id=>{
+    const el=document.getElementById('v-'+id);
+    if(el) el.style.display='none';
+  });
+  const el=document.getElementById('v-'+v);
+  if(el) el.style.display=(v==='calendar'||v==='activity')?'flex':'flex';
+  if(v==='docket'||v==='judgments'||v==='all') document.getElementById('v-'+v).style.flexDirection='column';
+  document.querySelectorAll('.ntab').forEach((t,i)=>t.classList.toggle('on',i===views.indexOf(v)));
   if(v==='activity')renderActivity(); else render();
 }
 const SCOL={Filed:'#E6F1FB,#0C447C',Pending:'#FAEEDA,#633806',Scheduled:'#EAF3DE,#27500A',Adjourned:'#FBEAF0,#72243E',Default:'#EEEDFE,#3C3489',Judgment:'#EEEDFE,#26215C',Dismissed:'#F1EFE8,#5F5E5A',Closed:'#F1EFE8,#444441'};
@@ -566,7 +674,7 @@ function renderCalendar(){
 }
 function calNav(d){calMonth+=d;if(calMonth<0){calMonth=11;calYear--;}if(calMonth>11){calMonth=0;calYear++;}renderCalendar();}
 function calToday(){calYear=todayDate.getFullYear();calMonth=todayDate.getMonth();renderCalendar();}
-function toggleSort(){sortAsc=!sortAsc;document.getElementById('sort-lbl').textContent=(sortAsc?'↑':'↓')+' Date';renderDocket();}
+function toggleSort(){sortAsc=!sortAsc;document.getElementById('sort-lbl').textContent=(sortAsc?'↓':'↑')+' Hearing';renderDocket();}
 
 // ── Activity ─────────────────────────────────────────────────
 async function renderActivity(){
