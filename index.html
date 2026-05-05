@@ -73,6 +73,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .jb-orders{color:#3C3489;margin-top:5px;font-weight:500;}
 .jb-payplan{color:#5547A8;margin-top:4px;font-size:11px;}
 .jorders{color:#5547A8;display:block;margin-top:3px;}
+.ev-ordered{background:#FFF0E0;color:#9C4A00;}
+.ev-scheduled{background:#FFF8D6;color:#7A5500;}
+.ev-executed{background:#EAF3DE;color:#27500A;}
+.ev-returned{background:#F1EFE8;color:#5F5E5A;}
+.eviction-details{font-size:12px;color:var(--text2);display:flex;gap:16px;flex-wrap:wrap;margin-top:5px;padding:7px 10px;background:var(--surface2);border-radius:6px;}
+.eviction-details .mk{font-size:11px;color:var(--text3);margin-right:3px;}
+.eviction-notes{font-size:12px;color:var(--text2);margin-top:5px;font-style:italic;}
+.ntab-badge{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#d93025;color:#fff;font-size:10px;font-weight:700;margin-left:5px;vertical-align:middle;}
 .card-actions{display:flex;gap:7px;margin-top:9px;padding-top:9px;border-top:1px solid var(--border);align-items:center;}
 .card-gcal{height:26px;padding:0 10px;font-size:11px;font-weight:500;border-radius:var(--r);background:#1a73e8;color:#fff;border:none;cursor:pointer;display:flex;align-items:center;gap:5px;text-decoration:none;}
 .card-gcal:hover{opacity:.85;}
@@ -174,6 +182,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="nav-tabs">
       <button class="ntab on" onclick="setView('docket')">📋 Upcoming Docket</button>
       <button class="ntab" onclick="setView('judgments')">⚖ Judgments</button>
+      <button class="ntab" onclick="setView('evictions')">🚪 Evictions</button>
       <button class="ntab" onclick="setView('all')">All Cases</button>
       <button class="ntab" onclick="setView('calendar')">Calendar</button>
       <button class="ntab" onclick="setView('activity')">Activity</button>
@@ -252,6 +261,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="docket-wrap" id="all-list"></div>
   </div>
 
+  <!-- EVICTIONS VIEW -->
+  <div id="v-evictions" style="flex:1;overflow:hidden;display:flex;flex-direction:column;display:none;">
+    <div class="toolbar">
+      <input id="e-search" placeholder="Search tenant, case #, address…" oninput="renderEvictions()">
+      <select id="e-status" onchange="renderEvictions()">
+        <option value="">All eviction statuses</option>
+        <option>Ordered</option><option>Scheduled</option><option>Executed</option><option>Returned</option>
+      </select>
+      <select id="e-prop" onchange="renderEvictions()">
+        <option value="">All properties</option><option>Legacy on The River</option>
+        <option>Creekwood Apartments</option><option>Legacy Flats</option><option>Legacy Manor</option>
+        <option>Legacy Place</option><option>Verwood Apartments</option>
+      </select>
+    </div>
+    <div class="docket-wrap" id="eviction-list"></div>
+  </div>
+
   <!-- CALENDAR VIEW -->
   <div id="v-cal" class="cal-view" style="display:none;">
     <div class="cal-nav">
@@ -288,7 +314,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <button class="mtab" onclick="mTab(1)">Virtual hearing</button>
       <button class="mtab" onclick="mTab(2)">Service</button>
       <button class="mtab" onclick="mTab(3)">Judgment</button>
-      <button class="mtab" onclick="mTab(4)">Notes</button>
+      <button class="mtab" onclick="mTab(4)">Eviction order</button>
+      <button class="mtab" onclick="mTab(5)">Notes</button>
     </div>
     <div class="modal-body">
       <div class="gcal-banner" id="gcal-banner" style="display:none;">
@@ -358,6 +385,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         </div>
       </div>
       <div class="tp" id="tp4">
+        <div class="form-sec">Order of eviction — DC-107</div>
+        <div class="fg">
+          <div class="f"><label>Order signed date</label><input type="date" id="f-edate" oninput="updateExecByDate()"></div>
+          <div class="f"><label>Eviction status</label>
+            <select id="f-estatus">
+              <option value="">— select —</option>
+              <option>Ordered</option>
+              <option>Scheduled</option>
+              <option>Executed</option>
+              <option>Returned</option>
+            </select>
+          </div>
+          <div class="f"><label>Application date</label><input type="date" id="f-eappdate"></div>
+          <div class="f"><label>Original judgment date</label><input type="date" id="f-ejdate"></div>
+          <div class="f"><label>Must execute by (56 days)</label><input type="date" id="f-eexecby" readonly style="background:var(--surface2);color:var(--text2);" placeholder="Auto-calculated"></div>
+          <div class="f"><label>Signed by (judge)</label><input id="f-esigned" placeholder="Hon. Amanda Lynne Eicher"></div>
+          <div class="f"><label>Date executed</label><input type="date" id="f-eexecuted"></div>
+          <div class="f"><label>Executing officer</label><input id="f-eofficer" placeholder="Deputy Sheriff / Bailiff name"></div>
+          <div class="f w2"><label>Payment received since judgment ($)</label><input type="number" id="f-epayment" placeholder="0"></div>
+          <div class="f w2"><label>Eviction notes</label><textarea id="f-enotes" placeholder="Scheduling, lockout details, property condition, storage issues…" style="min-height:70px;"></textarea></div>
+        </div>
+      </div>
+      <div class="tp" id="tp5">
         <div class="form-sec">Attorney notes</div>
         <div class="f w2" style="margin-bottom:18px;"><textarea id="f-anotes" placeholder="Legal strategy, key arguments, research, client instructions…"></textarea></div>
         <div class="form-sec">General notes</div>
@@ -533,13 +583,19 @@ function updateMetrics(){
   const upcoming=active.filter(c=>{if(!c.hearing)return false;const d=new Date(c.hearing+'T00:00:00');return d>=todayDate&&d<=t7;});
   const judgments=cases.filter(c=>c.status==='Judgment'||c.jtotal);
   const totalOwed=judgments.reduce((s,c)=>s+(parseFloat(c.jtotal)||0),0);
+  const activeEvictions=cases.filter(c=>c.edate&&(!c.estatus||c.estatus==='Ordered'||c.estatus==='Scheduled'));
   document.getElementById('m0').textContent=cases.length;
   document.getElementById('m1').textContent=active.length;
   document.getElementById('m2').textContent=upcoming.length;
   document.getElementById('m3').textContent=judgments.length;
-  document.getElementById('m4').textContent=totalOwed>0?'$'+totalOwed.toLocaleString('en-US',{maximumFractionDigits:0}):'—';
+  document.getElementById('m4').textContent=activeEvictions.length>0?activeEvictions.length+' active':'—';
+  // Add eviction badge to nav tab
+  const evTab=document.querySelector('.ntab:nth-child(3)');
+  if(evTab&&activeEvictions.length>0&&!evTab.querySelector('.ntab-badge')){
+    const b=document.createElement('span');b.className='ntab-badge';b.textContent=activeEvictions.length;evTab.appendChild(b);
+  } else if(evTab) {const b=evTab.querySelector('.ntab-badge');if(b)b.textContent=activeEvictions.length>0?activeEvictions.length:'';}
 }
-function render(){updateMetrics();if(curView==='docket')renderDocket();else if(curView==='judgments')renderJudgments();else if(curView==='all')renderAll();else if(curView==='calendar')renderCalendar();else renderActivity();}
+function render(){updateMetrics();if(curView==='docket')renderDocket();else if(curView==='judgments')renderJudgments();else if(curView==='evictions')renderEvictions();else if(curView==='all')renderAll();else if(curView==='calendar')renderCalendar();else renderActivity();}
 
 // ── Card builder (shared) ─────────────────────────────────────
 function buildCard(c, showJudgment=false){
@@ -641,17 +697,107 @@ function renderAll(){
   el.innerHTML=list.map(c=>buildCard(c,true)).join('');
 }
 
+// ── Evictions ─────────────────────────────────────────────────
+function updateExecByDate(){
+  const edate=document.getElementById('f-edate').value;
+  const execBy=document.getElementById('f-eexecby');
+  if(edate){
+    const d=new Date(edate+'T00:00:00');d.setDate(d.getDate()+56);
+    execBy.value=d.toISOString().slice(0,10);
+  } else {execBy.value='';}
+}
+
+function daysUntilExec(c){
+  if(!c.edate)return null;
+  const execBy=new Date(c.edate+'T00:00:00');execBy.setDate(execBy.getDate()+56);
+  return Math.round((execBy-todayDate)/86400000);
+}
+
+function buildEvictionCard(c){
+  const execDays=daysUntilExec(c);
+  const execByDate=c.edate?(()=>{const d=new Date(c.edate+'T00:00:00');d.setDate(d.getDate()+56);return d.toISOString().slice(0,10);})():'';
+  let urgencyTag='';
+  if(c.estatus!=='Executed'&&c.estatus!=='Returned'&&execDays!==null){
+    if(execDays<0)urgencyTag=`<span class="badge t-ovd">⚠ Expired ${Math.abs(execDays)}d ago</span>`;
+    else if(execDays<=7)urgencyTag=`<span class="badge t-ovd">🔥 ${execDays}d to execute</span>`;
+    else if(execDays<=14)urgencyTag=`<span class="badge t-urg">${execDays}d to execute</span>`;
+  }
+  const estatusBadge=c.estatus?`<span class="badge ev-${(c.estatus||'').toLowerCase().replace(' ','-')}">${c.estatus}</span>`:'<span class="badge ev-ordered">Ordered</span>';
+  return `<div class="case-card" onclick="openModal('${c.id}')">
+    <div class="cr1">
+      <span class="cname">${c.tenant||'Unnamed'}</span>
+      ${estatusBadge}
+      ${urgencyTag}
+    </div>
+    <div class="cr2">
+      ${c.cnum?`<span class="mf"><span class="mk">Case #</span>${c.cnum}</span>`:''}
+      ${c.court?`<span class="mf"><span class="mk">Court</span>${c.court}</span>`:''}
+      ${c.edate?`<span class="mf"><span class="mk">Order signed</span>${fmtDate(c.edate)}</span>`:''}
+      ${execByDate?`<span class="mf"><span class="mk">Must execute by</span><strong>${fmtDate(execByDate)}</strong></span>`:''}
+      ${c.eexecuted?`<span class="mf"><span class="mk">Executed</span>${fmtDate(c.eexecuted)}</span>`:''}
+    </div>
+    <div class="cr3">
+      ${c.address?`<span>${c.address}</span>`:''}
+      ${c.prop&&c.prop!==c.address?`<span>📍 ${c.prop}</span>`:''}
+      ${c.esigned?`<span>Signed by ${c.esigned}</span>`:''}
+      ${c.eofficer?`<span>Officer: ${c.eofficer}</span>`:''}
+    </div>
+    ${c.eappdate||c.ejdate?`<div class="eviction-details">
+      ${c.ejdate?`<span><span class="mk">Judgment date</span>${fmtDate(c.ejdate)}</span>`:''}
+      ${c.eappdate?`<span><span class="mk">Application date</span>${fmtDate(c.eappdate)}</span>`:''}
+      ${c.epayment&&c.epayment!=='0'?`<span><span class="mk">Payment received</span>$${Number(c.epayment).toLocaleString()}</span>`:''}
+    </div>`:''}
+    ${c.enotes?`<div class="eviction-notes">📝 ${c.enotes}</div>`:''}
+    <div class="card-actions" onclick="event.stopPropagation()">
+      <button class="card-edit" onclick="openModal('${c.id}')">Edit / update</button>
+      ${c.estatus!=='Executed'&&c.estatus!=='Returned'?`<button class="card-edit" style="background:#EAF3DE;color:#27500A;border-color:#B8D8A0;" onclick="event.stopPropagation();quickMarkExecuted('${c.id}')">✓ Mark executed</button>`:''}
+      ${c.updated_by?`<span class="edited-by">Updated by ${c.updated_by} ${fmtRelative(c.updated_at)}</span>`:''}
+    </div>
+  </div>`;
+}
+
+async function quickMarkExecuted(id){
+  const c=cases.find(x=>x.id===id);if(!c)return;
+  const today=todayStr;
+  try{
+    await sbPatch('cases',id,{estatus:'Executed',eexecuted:today,updated_by:currentUser,updated_at:new Date().toISOString()});
+    await sbPost('activity_log',{case_id:id,action:'updated',user_name:currentUser,details:`${c.tenant} — eviction executed`});
+    await loadCases();
+  }catch(e){alert('Update failed: '+e.message);}
+}
+
+function renderEvictions(){
+  const q=document.getElementById('e-search').value.toLowerCase();
+  const es=document.getElementById('e-status').value;
+  const ep=document.getElementById('e-prop').value;
+  let list=cases.filter(c=>{
+    if(!c.edate)return false;
+    const txt=[c.tenant,c.cnum,c.address,c.court,c.prop,c.enotes,c.esigned,c.eofficer].join(' ').toLowerCase();
+    return txt.includes(q)&&(!es||c.estatus===es)&&(!ep||c.prop===ep);
+  });
+  // Sort: active evictions first (ordered/scheduled), then by deadline soonest
+  list.sort((a,b)=>{
+    const activeA=!a.estatus||a.estatus==='Ordered'||a.estatus==='Scheduled';
+    const activeB=!b.estatus||b.estatus==='Ordered'||b.estatus==='Scheduled';
+    if(activeA&&!activeB)return -1;
+    if(!activeA&&activeB)return 1;
+    return (a.edate||'').localeCompare(b.edate||'');
+  });
+  const el=document.getElementById('eviction-list');
+  if(!list.length){el.innerHTML=`<div class="empty-state"><div class="ei">🚪</div><div class="et">No eviction orders</div><div class="es">When an Order of Eviction (DC-107) is signed,<br>upload it or open the case and fill in the <strong>Eviction order</strong> tab.</div></div>`;return;}
+  el.innerHTML=list.map(c=>buildEvictionCard(c)).join('');
+}
+
 // ── Calendar ─────────────────────────────────────────────────
 function setView(v){
   curView=v;
-  const views=['docket','judgments','all','calendar','activity'];
+  const views=['docket','judgments','evictions','all','calendar','activity'];
   views.forEach(id=>{
     const el=document.getElementById('v-'+id);
     if(el) el.style.display='none';
   });
   const el=document.getElementById('v-'+v);
-  if(el) el.style.display=(v==='calendar'||v==='activity')?'flex':'flex';
-  if(v==='docket'||v==='judgments'||v==='all') document.getElementById('v-'+v).style.flexDirection='column';
+  if(el){el.style.display='flex';if(['docket','judgments','evictions','all'].includes(v))el.style.flexDirection='column';}
   document.querySelectorAll('.ntab').forEach((t,i)=>t.classList.toggle('on',i===views.indexOf(v)));
   if(v==='activity')renderActivity(); else render();
 }
@@ -711,6 +857,14 @@ function openModal(id){
   g('f-jrent').value=c.jrent||'';g('f-jcosts').value=c.jcosts||'';g('f-jtotal').value=c.jtotal||'';
   g('f-jpov').value=c.jpov||'';g('f-jsigned').value=c.jsigned||'';
   g('f-jorders').value=c.jorders||'';g('f-jpayplan').value=c.jpayplan||'';
+  // Eviction fields
+  g('f-edate').value=c.edate||'';g('f-estatus').value=c.estatus||'';
+  g('f-eappdate').value=c.eappdate||'';g('f-ejdate').value=c.ejdate||'';
+  g('f-esigned').value=c.esigned||'';g('f-eexecuted').value=c.eexecuted||'';
+  g('f-eofficer').value=c.eofficer||'';g('f-epayment').value=c.epayment||'';
+  g('f-enotes').value=c.enotes||'';
+  // Auto-calc 56-day deadline
+  updateExecByDate();
   refreshGcalBanner();
   document.getElementById('overlay').style.display='flex';
   setTimeout(()=>g('f-tenant').focus(),60);
@@ -723,7 +877,7 @@ async function saveCase(){
   const g=i=>document.getElementById(i).value;
   if(!g('f-tenant').trim()&&!g('f-cnum').trim()){alert('Enter a tenant name or case number.');return;}
   const now=new Date().toISOString();
-  const c={id:editId||(Date.now().toString(36)+Math.random().toString(36).slice(2,5)),tenant:g('f-tenant').trim(),address:g('f-addr'),prop:g('f-prop'),cnum:g('f-cnum'),ctype:g('f-ctype'),court:g('f-court'),judge:g('f-judge'),filed:g('f-filed')||null,hearing:g('f-hearing')||null,htime:g('f-htime')||null,status:g('f-status'),amount:g('f-amt')||null,vplat:g('f-vplat'),zid:g('f-zid'),zpw:g('f-zpw'),zlink:g('f-zlink'),sdate:g('f-sdate')||null,smethod:g('f-smethod'),server_name:g('f-server'),rof:g('f-rof')||null,anotes:g('f-anotes'),notes:g('f-notes'),jdate:g('f-jdate')||null,jtype:g('f-jtype'),jposs:g('f-jposs'),jrent:g('f-jrent')||null,jcosts:g('f-jcosts')||null,jtotal:g('f-jtotal')||null,jpov:g('f-jpov')||null,jsigned:g('f-jsigned'),jorders:g('f-jorders'),jpayplan:g('f-jpayplan'),updated_by:currentUser,updated_at:now};
+  const c={id:editId||(Date.now().toString(36)+Math.random().toString(36).slice(2,5)),tenant:g('f-tenant').trim(),address:g('f-addr'),prop:g('f-prop'),cnum:g('f-cnum'),ctype:g('f-ctype'),court:g('f-court'),judge:g('f-judge'),filed:g('f-filed')||null,hearing:g('f-hearing')||null,htime:g('f-htime')||null,status:g('f-status'),amount:g('f-amt')||null,vplat:g('f-vplat'),zid:g('f-zid'),zpw:g('f-zpw'),zlink:g('f-zlink'),sdate:g('f-sdate')||null,smethod:g('f-smethod'),server_name:g('f-server'),rof:g('f-rof')||null,anotes:g('f-anotes'),notes:g('f-notes'),jdate:g('f-jdate')||null,jtype:g('f-jtype'),jposs:g('f-jposs'),jrent:g('f-jrent')||null,jcosts:g('f-jcosts')||null,jtotal:g('f-jtotal')||null,jpov:g('f-jpov')||null,jsigned:g('f-jsigned'),jorders:g('f-jorders'),jpayplan:g('f-jpayplan'),edate:g('f-edate')||null,estatus:g('f-estatus'),eappdate:g('f-eappdate')||null,ejdate:g('f-ejdate')||null,esigned:g('f-esigned'),eexecuted:g('f-eexecuted')||null,eofficer:g('f-eofficer'),epayment:g('f-epayment')||null,enotes:g('f-enotes'),updated_by:currentUser,updated_at:now};
   try{
     if(editId){await sbPatch('cases',editId,c);}else{c.created_at=now;await sbPost('cases',c);}
     await sbPost('activity_log',{case_id:c.id,action:editId?'updated':'created',user_name:currentUser,details:`${c.tenant||'Unknown'} — ${c.cnum||'No case #'}`});
@@ -809,7 +963,7 @@ async function handleUpload(file){
     const base64=await toBase64(file);
     const isPDF=file.type==='application/pdf'||ext==='pdf';
     const block=isPDF?{type:'document',source:{type:'base64',media_type:'application/pdf',data:base64}}:{type:'image',source:{type:'base64',media_type:file.type||'image/jpeg',data:base64}};
-    const prompt=`You are extracting data from a Michigan landlord-tenant court document. It may be a SUMMONS (DC-104) or a JUDGMENT (DC-105). Read every field, stamp, checkbox, and handwritten entry carefully. Return ONLY valid JSON — no markdown.\n\n{"docType":"summons or judgment","tenant":"full defendant name","address":"full property address","casenum":"case number e.g. 26-1627-LT","court":"full court name","judge":"judge name","filed":"YYYY-MM-DD","hearing":"hearing date YYYY-MM-DD","hearingTime":"HH:MM 24h","caseType":"Eviction|Money Judgment|Land Contract|Trespass|Other","amount":null,"vplatform":"Zoom or Teams or null","zoomId":"meeting ID or null","zoomPassword":"passcode or null","joinLink":"full URL or null","judgmentDate":"YYYY-MM-DD or null","judgmentType":"Consent or Default or Hearing — check which box is checked","possessionJudgment":"Yes — plaintiff or Yes — defendant retains or No","rentOwed":null,"costs":null,"judgmentTotal":null,"payOrVacateDeadline":"YYYY-MM-DD or null","furtherOrders":"exact verbatim text from item 10 THE COURT FURTHER ORDERS field","signedBy":"judge who physically signed"}`;
+    const prompt=`You are extracting data from a Michigan landlord-tenant court document. It may be a SUMMONS (DC-104), JUDGMENT (DC-105), or ORDER OF EVICTION (DC-107). Read every field, stamp, checkbox, and handwritten entry carefully. Return ONLY valid JSON — no markdown.\n\n{"docType":"summons or judgment or eviction","tenant":"full defendant name","address":"full property address","casenum":"case number e.g. 26-10560-LT","court":"full court name and district number","judge":"judge name","filed":"YYYY-MM-DD","hearing":"hearing date YYYY-MM-DD (summons only)","hearingTime":"HH:MM 24h (summons only)","caseType":"Eviction|Money Judgment|Land Contract|Trespass|Other","amount":null,"vplatform":"Zoom or Teams or null","zoomId":"meeting ID or null","zoomPassword":"passcode or null","joinLink":"full URL or null","judgmentDate":"YYYY-MM-DD (judgment or eviction only)","judgmentType":"Consent or Default or Hearing","possessionJudgment":"Yes — plaintiff or Yes — defendant retains or No","rentOwed":null,"costs":null,"judgmentTotal":null,"payOrVacateDeadline":"YYYY-MM-DD or null","furtherOrders":"exact verbatim text from item 10 THE COURT FURTHER ORDERS field","signedBy":"judge who signed","evictionOrderDate":"YYYY-MM-DD date judge signed the Order of Eviction — look for Judge signature and date on DC-107","evictionApplicationDate":"YYYY-MM-DD date the application was signed","evictionJudgmentDate":"YYYY-MM-DD original judgment date from item 1 of DC-107","evictionPaymentReceived":0,"evictionSignedBy":"judge name on the Order of Eviction signature line"}`;
     const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:[block,{type:'text',text:prompt}]}]})});
     if(!res.ok){const err=await res.json();throw new Error(err.error?.message||'API error '+res.status);}
     const data=await res.json();
@@ -833,13 +987,20 @@ async function handleUpload(file){
     if(info.payOrVacateDeadline)g('f-jpov').value=info.payOrVacateDeadline;
     if(info.furtherOrders)g('f-jorders').value=info.furtherOrders;
     if(info.signedBy)g('f-jsigned').value=info.signedBy;
-    // Set status based on doc type
+    // Eviction fields (DC-107)
+    if(info.evictionOrderDate){g('f-edate').value=info.evictionOrderDate;updateExecByDate();}
+    if(info.evictionApplicationDate)g('f-eappdate').value=info.evictionApplicationDate;
+    if(info.evictionJudgmentDate)g('f-ejdate').value=info.evictionJudgmentDate;
+    if(info.evictionSignedBy)g('f-esigned').value=info.evictionSignedBy;
+    if(info.evictionPaymentReceived!==undefined&&info.evictionPaymentReceived!==null)g('f-epayment').value=info.evictionPaymentReceived;
+    // Set status and jump to correct tab
     if(!editId){
-      g('f-status').value = info.docType==='judgment' ? 'Judgment' : 'Scheduled';
-      if(info.docType==='judgment') setTimeout(()=>{ document.querySelectorAll('.mtab')[3].click(); },300);
+      if(info.docType==='eviction'){g('f-status').value='Closed';g('f-estatus').value='Ordered';setTimeout(()=>{document.querySelectorAll('.mtab')[4].click();},300);}
+      else if(info.docType==='judgment'){g('f-status').value='Judgment';setTimeout(()=>{document.querySelectorAll('.mtab')[3].click();},300);}
+      else{g('f-status').value='Scheduled';}
     }
     refreshGcalBanner();
-    const docLabel = info.docType==='judgment' ? '⚖ Judgment extracted' : '✓ Summons extracted';
+    const docLabel = info.docType==='eviction'?'🚪 Eviction order extracted':info.docType==='judgment'?'⚖ Judgment extracted':'✓ Summons extracted';
     showExtrMsg(docLabel+' — review fields and save','success');
   }catch(e){showExtrMsg('⚠ Extraction failed: '+e.message,'error');document.getElementById('upzone').style.display='';console.error(e);}
 }
