@@ -116,12 +116,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .mtab{height:40px;padding:0 14px;font-size:13px;border:none;background:none;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;font-family:inherit;}
 .mtab:hover{color:var(--text);}.mtab.on{color:var(--text);border-bottom-color:var(--text);font-weight:600;}
 .modal-body{padding:20px;}
-.upzone{border:2px dashed var(--border2);border-radius:var(--r);padding:18px;text-align:center;margin-bottom:18px;cursor:pointer;transition:all .15s;}
-.upzone:hover{background:var(--surface2);border-color:var(--text3);}.upzone.drag{background:#E6F1FB;border-color:#185FA5;}
-.upzone .ui{font-size:26px;margin-bottom:5px;}.upzone .ut{font-size:14px;font-weight:600;color:var(--text2);}
-.upzone .us{font-size:12px;color:var(--text3);margin-top:3px;}
-.extr-msg{display:flex;align-items:center;gap:8px;font-size:13px;border-radius:var(--r);padding:10px 14px;margin-bottom:18px;}
-.extr-msg.loading{background:var(--surface2);color:var(--text2);}.extr-msg.success{background:#EAF3DE;color:#27500A;}.extr-msg.error{background:#FAECE7;color:#993C1D;}
 .gcal-banner{background:#E8F0FE;border:1px solid #C5D6F7;border-radius:var(--r);padding:12px 14px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
 .form-sec{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;font-weight:700;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:16px;}
 .fg{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
@@ -351,19 +345,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div style="font-size:12px;color:#3a6dc7;margin-top:2px;">Opens pre-filled — just click Save in Google Calendar</div></div>
         <button class="btn gcal" onclick="createCalEvent()">Open Google Calendar →</button>
       </div>
-      <div class="upzone" id="upzone"
-        role="button" tabindex="0"
-        onclick="document.getElementById('file-in').click()"
-        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('file-in').click()}"
-        ondragover="event.preventDefault();this.classList.add('drag')"
-        ondragleave="this.classList.remove('drag')"
-        ondrop="event.preventDefault();this.classList.remove('drag');handleUpload(event.dataTransfer.files[0])">
-        <div class="ui">📎</div>
-        <div class="ut">Upload court document to auto-fill</div>
-        <div class="us">PDF or image up to 4 MB · OpenAI extracts the case details for review</div>
-      </div>
-      <input type="file" id="file-in" accept=".pdf,.jpg,.jpeg,.png,.webp" style="display:none" onchange="handleUpload(this.files[0]);this.value=''">
-      <div class="extr-msg" id="extr-msg" role="status" aria-live="polite" style="display:none;"></div>
       <div class="tp on" id="tp0">
         <div class="fg">
           <div class="f w2"><label>Tenant / defendant</label><input id="f-tenant" placeholder="John Smith"></div>
@@ -844,8 +825,6 @@ function openModal(id){
   editId=id;
   document.getElementById('m-title').textContent=id?'Edit case':'New case';
   document.getElementById('m-del').style.display=id?'':'none';
-  document.getElementById('upzone').style.display='';
-  document.getElementById('extr-msg').style.display='none';
   mTab(0);
   const c=id?cases.find(x=>x.id===id):{};
   const g=i=>document.getElementById(i);
@@ -906,124 +885,6 @@ function exportCSV(){
   const R=cases.map(c=>[c.tenant,c.address,c.prop,c.cnum,c.ctype,c.court,c.judge,c.filed,c.hearing,c.htime,c.status,c.amount,c.vplat,c.zid,c.zpw,c.zlink,c.sdate,c.smethod,c.server_name,c.rof,c.jdate,c.jtype,c.jposs,c.jrent,c.jcosts,c.jtotal,c.jpov,c.jsigned,c.jorders,c.jpayplan,c.edate,c.estatus,c.eappdate,c.ejdate,c.eexecuted,c.eofficer,c.epayment,c.enotes,c.anotes,c.notes,c.updated_by,c.updated_at].map(v=>`"${String(v??'').replace(/"/g,'""')}"`));
   const csv=[H.join(','),...R.map(r=>r.join(','))].join('\n');
   const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);a.download='case-docket-'+todayStr+'.csv';a.click();
-}
-
-// ── OpenAI document extraction ───────────────────────────────
-function showExtrMsg(message,type){
-  const el=document.getElementById('extr-msg');
-  el.className='extr-msg '+type;
-  el.textContent=message;
-  el.style.display='flex';
-}
-
-function setExtractedField(id,value){
-  if(value===null||value===undefined||value==='')return;
-  const field=document.getElementById(id);
-  if(!field)return;
-  field.value=String(value);
-}
-
-function setExtractedSelect(id,value){
-  if(!value)return;
-  const field=document.getElementById(id);
-  if(!field)return;
-  const wanted=String(value).trim().toLowerCase();
-  const option=[...field.options].find(o=>o.value.toLowerCase()===wanted||o.textContent.trim().toLowerCase()===wanted);
-  if(option)field.value=option.value;
-}
-
-function moneyValue(value){return value===null||value===undefined?'':String(value).replace(/[$,\s]/g,'');}
-
-function applyExtractedDocument(info){
-  setExtractedField('f-tenant',info.tenant);
-  setExtractedField('f-addr',info.address);
-  setExtractedField('f-cnum',info.caseNumber);
-  setExtractedField('f-court',info.court);
-  setExtractedField('f-judge',info.judge);
-  setExtractedField('f-filed',info.filedDate);
-  setExtractedField('f-hearing',info.hearingDate);
-  setExtractedField('f-htime',info.hearingTime);
-  setExtractedSelect('f-ctype',info.caseType);
-  setExtractedField('f-amt',moneyValue(info.amount));
-
-  const platformMap={zoom:'Zoom','microsoft teams':'Microsoft Teams',teams:'Microsoft Teams',webex:'Webex','in-person':'In-Person','in person':'In-Person',phone:'Phone'};
-  const platform=info.virtualPlatform?platformMap[String(info.virtualPlatform).trim().toLowerCase()]:'';
-  setExtractedSelect('f-vplat',platform);
-  setExtractedField('f-zid',info.meetingId);
-  setExtractedField('f-zpw',info.meetingPassword);
-  setExtractedField('f-zlink',info.joinLink);
-
-  setExtractedField('f-jdate',info.judgmentDate);
-  setExtractedSelect('f-jtype',info.judgmentType);
-  const possession=String(info.possessionJudgment||'').toLowerCase();
-  if(possession.includes('plaintiff'))setExtractedSelect('f-jposs','Yes — plaintiff');
-  else if(possession.includes('defendant'))setExtractedSelect('f-jposs','Yes — defendant retains');
-  else if(possession==='no')setExtractedSelect('f-jposs','No');
-  setExtractedField('f-jrent',moneyValue(info.rentOwed));
-  setExtractedField('f-jcosts',moneyValue(info.costs));
-  setExtractedField('f-jtotal',moneyValue(info.judgmentTotal));
-  setExtractedField('f-jpov',info.payOrVacateDeadline);
-  setExtractedField('f-jorders',info.furtherOrders);
-  setExtractedField('f-jsigned',info.signedBy);
-
-  setExtractedField('f-edate',info.evictionOrderDate);
-  setExtractedField('f-eappdate',info.evictionApplicationDate);
-  setExtractedField('f-ejdate',info.evictionJudgmentDate);
-  setExtractedField('f-epayment',moneyValue(info.evictionPaymentReceived));
-  setExtractedField('f-esigned',info.evictionSignedBy);
-
-  if(!editId){
-    if(info.docType==='eviction'){
-      setExtractedSelect('f-status','Closed');
-      setExtractedSelect('f-estatus','Ordered');
-      mTab(4);
-    }else if(info.docType==='judgment'){
-      setExtractedSelect('f-status','Judgment');
-      mTab(3);
-    }else if(info.docType==='summons'){
-      setExtractedSelect('f-status','Scheduled');
-    }
-  }
-
-  updateExecByDate();
-  refreshGcalBanner();
-}
-
-async function handleUpload(file){
-  if(!file)return;
-  const ext=(file.name.split('.').pop()||'').toLowerCase();
-  const typeByExt={pdf:'application/pdf',jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',webp:'image/webp'};
-  const mimeType=file.type||typeByExt[ext]||'';
-  if(!Object.values(typeByExt).includes(mimeType)){
-    alert('Upload a PDF, JPG, PNG, or WEBP file.');
-    return;
-  }
-  if(file.size>4_000_000){
-    alert('This file is larger than 4 MB. Compress it and try again.');
-    return;
-  }
-
-  document.getElementById('upzone').style.display='none';
-  showExtrMsg('Analyzing the document with OpenAI…','loading');
-
-  try{
-    const response=await fetch('/api/extract',{
-      method:'POST',
-      headers:{
-        'Content-Type':mimeType,
-        'X-File-Name':encodeURIComponent(file.name)
-      },
-      body:file
-    });
-    const result=await response.json().catch(()=>({}));
-    if(!response.ok)throw new Error(result.error||`Extraction failed (${response.status}).`);
-    applyExtractedDocument(result.data||{});
-    const label=result.data?.docType==='eviction'?'Eviction order':result.data?.docType==='judgment'?'Judgment':result.data?.docType==='summons'?'Summons':'Document';
-    showExtrMsg(`${label} extracted — review every field before saving.`,'success');
-  }catch(error){
-    showExtrMsg(error.message||'Document extraction failed. Please try again.','error');
-    document.getElementById('upzone').style.display='';
-  }
 }
 
 // ── Init ─────────────────────────────────────────────────────
