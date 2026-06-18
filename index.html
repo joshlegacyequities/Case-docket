@@ -116,12 +116,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .mtab{height:40px;padding:0 14px;font-size:13px;border:none;background:none;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;font-family:inherit;}
 .mtab:hover{color:var(--text);}.mtab.on{color:var(--text);border-bottom-color:var(--text);font-weight:600;}
 .modal-body{padding:20px;}
-.upzone{border:2px dashed var(--border2);border-radius:var(--r);padding:20px;text-align:center;margin-bottom:18px;cursor:pointer;transition:all .15s;}
-.upzone:hover{background:var(--surface2);border-color:var(--text3);}.upzone.drag{background:#E6F1FB;border-color:#185FA5;}
-.upzone .ui{font-size:26px;margin-bottom:5px;}.upzone .ut{font-size:14px;font-weight:500;color:var(--text2);}
-.upzone .us{font-size:12px;color:var(--text3);margin-top:3px;}
-.extr-msg{display:flex;align-items:center;gap:8px;font-size:13px;border-radius:var(--r);padding:10px 14px;margin-bottom:18px;}
-@keyframes spin{to{transform:rotate(360deg);}}.spin{animation:spin .7s linear infinite;display:inline-block;}
 .gcal-banner{background:#E8F0FE;border:1px solid #C5D6F7;border-radius:var(--r);padding:12px 14px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
 .form-sec{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;font-weight:700;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:16px;}
 .fg{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
@@ -151,6 +145,35 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .setup-banner h3{font-size:15px;font-weight:700;color:#7A5700;margin-bottom:8px;}
 .setup-banner p{font-size:13px;color:#8A6300;line-height:1.7;margin-bottom:10px;}
 .setup-banner code{background:#F5E9B8;padding:2px 6px;border-radius:4px;font-family:monospace;font-size:12px;}
+@media(max-width:900px){
+  .nav{height:auto;min-height:54px;padding:10px 12px;gap:8px;flex-wrap:wrap;}
+  .brand{flex:1;}
+  .nav-r{order:2;width:100%;margin-left:0;overflow-x:auto;padding-bottom:2px;scrollbar-width:thin;}
+  .nav-tabs{order:3;width:100%;overflow-x:auto;padding-bottom:2px;scrollbar-width:thin;}
+  .nav-r>*{flex-shrink:0;}.ntab{flex-shrink:0;}
+  .metrics-bar{display:grid;grid-template-columns:repeat(3,1fr);padding:10px 12px;gap:0;}
+  .mc{padding:8px 12px;border-bottom:1px solid var(--border);}
+  .mc:nth-child(3){border-right:none;}.mc:nth-child(n+4){border-bottom:none;}
+  .toolbar{padding:10px 12px;}.docket-wrap{padding:12px;}
+  .cal-body,.activity-view{padding:12px;}.cal-cell{min-height:82px;padding:6px;}
+}
+@media(max-width:600px){
+  .app{height:100dvh;}
+  .brand{font-size:15px;}
+  .nav-r{gap:6px;}.nav-r .btn{height:34px;}
+  .sync-status{display:none;}
+  .metrics-bar{grid-template-columns:repeat(2,1fr);}
+  .mc,.mc:first-child{padding:7px 10px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
+  .mc:nth-child(even){border-right:none;}.mc:nth-child(3){border-right:1px solid var(--border);}
+  .mc:nth-child(n+5){border-bottom:none;}.mc .mv{font-size:21px;}.mc .ml{font-size:9px;}
+  .toolbar>*{flex:1 1 140px;}#s-search{min-width:100%;}
+  .fg{grid-template-columns:1fr;}.f.w2{grid-column:auto;}
+  .overlay{padding:12px 8px;align-items:flex-start;}
+  .modal{max-height:calc(100dvh - 24px);display:flex;flex-direction:column;}
+  .modal-tabs{padding:0 8px;}.modal-body{padding:16px;overflow-y:auto;}.modal-ftr{padding:12px;}
+  .card-actions{flex-wrap:wrap;}.edited-by{width:100%;margin-left:0;}
+  .cal-body{overflow-x:auto;}.cal-grid{min-width:650px;}
+}
 @media print{.nav,.metrics-bar,.toolbar{display:none;}.docket-wrap{overflow:visible;padding:0;}.case-card{break-inside:avoid;}}
 </style>
 </head>
@@ -192,7 +215,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <button class="who-badge" onclick="openWho()" id="who-btn">👤 Set name</button>
       <button class="btn" onclick="exportCSV()">↓ CSV</button>
       <button class="btn" onclick="window.print()">⎙ Print</button>
-      <button class="btn icon" onclick="openSettings()" title="Settings">⚙</button>
       <button class="btn pk" onclick="openModal(null)">+ New Case</button>
     </div>
   </nav>
@@ -279,7 +301,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 
   <!-- CALENDAR VIEW -->
-  <div id="v-cal" class="cal-view" style="display:none;">
+  <div id="v-calendar" class="cal-view" style="display:none;">
     <div class="cal-nav">
       <button class="btn" onclick="calNav(-1)">← Prev</button>
       <h2 id="cal-title"></h2>
@@ -323,18 +345,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div style="font-size:12px;color:#3a6dc7;margin-top:2px;">Opens pre-filled — just click Save in Google Calendar</div></div>
         <button class="btn gcal" onclick="createCalEvent()">Open Google Calendar →</button>
       </div>
-      <div class="upzone" id="upzone"
-        onclick="document.getElementById('file-in').click()"
-        ondragover="event.preventDefault();this.classList.add('drag')"
-        ondragleave="this.classList.remove('drag')"
-        ondrop="event.preventDefault();this.classList.remove('drag');handleUpload(event.dataTransfer.files[0])">
-        <div class="ui">📎</div>
-        <div class="ut">Upload summons to auto-fill — drag & drop or click</div>
-        <div class="us">PDF or image · Extracts tenant, case #, hearing date & time, Zoom ID</div>
-      </div>
-      <input type="file" id="file-in" accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="handleUpload(this.files[0]);this.value=''">
-      <div class="extr-msg" id="extr-msg" style="display:none;"></div>
-
       <div class="tp on" id="tp0">
         <div class="fg">
           <div class="f w2"><label>Tenant / defendant</label><input id="f-tenant" placeholder="John Smith"></div>
@@ -438,37 +448,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
-<!-- SETTINGS MODAL -->
-<div class="overlay" id="settings-overlay" style="display:none;" onclick="if(event.target===this)closeSettings()">
-  <div class="modal" style="width:520px;" onclick="event.stopPropagation()">
-    <div class="modal-hdr"><h3>Settings</h3><button class="btn icon" onclick="closeSettings()">✕</button></div>
-    <div class="modal-body">
-      <div style="margin-bottom:22px;">
-        <h4 style="font-size:14px;font-weight:600;margin-bottom:6px;">Anthropic API key — AI extraction</h4>
-        <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">Saved once to the shared database — the whole team gets AI summons extraction automatically. Only Josh needs to set this.</p>
-        <div style="display:flex;gap:8px;">
-          <input type="password" id="api-key-input" placeholder="sk-ant-api03-…" autocomplete="off" style="flex:1;font-size:13px;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);font-family:inherit;">
-          <button class="btn" onclick="toggleApiKeyVis()">Show</button>
-          <button class="btn pk" onclick="saveApiKey()">Save for everyone</button>
-        </div>
-        <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
-          <span class="sdot" id="ak-dot" style="width:7px;height:7px;"></span>
-          <span id="ak-status" style="font-size:12px;color:var(--text3);">Checking…</span>
-        </div>
-        <div style="font-size:12px;color:var(--text3);margin-top:6px;">Get a key at <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:#185FA5;">console.anthropic.com</a></div>
-      </div>
-      <div style="margin-bottom:22px;">
-        <h4 style="font-size:14px;font-weight:600;margin-bottom:8px;">Google Calendar</h4>
-        <p style="font-size:13px;color:var(--text3);">No setup needed. Click <strong>📅 Add to Google Calendar</strong> on any case card.</p>
-      </div>
-      <div>
-        <h4 style="font-size:14px;font-weight:600;margin-bottom:8px;">About</h4>
-        <p style="font-size:12px;color:var(--text3);">Case Docket · Legacy Equities Management<br>Database hosted on Supabase · App hosted on Vercel</p>
-      </div>
-    </div>
-  </div>
-</div>
-
 <script>
 // ── Supabase API ─────────────────────────────────────────────
 const SB_HEADERS = {
@@ -498,9 +477,7 @@ async function sbDelete(table, id) {
 }
 
 // ── State ─────────────────────────────────────────────────────
-const AK = 'legacy-api-key';
-let sharedAnthropicKey = '';
-let cases = [], sortAsc = false, curView = 'docket', editId = null;
+let cases = [], sortAsc = true, curView = 'docket', editId = null;
 let calYear, calMonth;
 let currentUser = localStorage.getItem('docket-user') || '';
 const todayDate = new Date(); todayDate.setHours(0,0,0,0);
@@ -534,7 +511,7 @@ async function loadCases() {
     render();
   } catch(e) {
     setSyncStatus('err','Connection error');
-    document.getElementById('docket-list').innerHTML = `<div class="empty-state"><div class="ei">⚠️</div><div class="et">Cannot connect to database</div><div class="es">Check that your Supabase URL and key are correct in the HTML file.<br><br style="margin-bottom:4px;"><small style="font-family:monospace;font-size:11px;">${e.message}</small></div></div>`;
+    document.getElementById('docket-list').innerHTML = `<div class="empty-state"><div class="ei">⚠️</div><div class="et">Cannot connect to database</div><div class="es">Check that your Supabase URL and key are correct in the HTML file.<br><br style="margin-bottom:4px;"><small style="font-family:monospace;font-size:11px;">${esc(e.message)}</small></div></div>`;
   }
 }
 
@@ -558,6 +535,8 @@ function dayDiff(ds){if(!ds)return null;return Math.round((new Date(ds+'T00:00:0
 function fmtDate(ds){if(!ds)return'—';const[y,m,d]=ds.split('-');return m+'/'+d+'/'+y;}
 function fmtTime(ts){if(!ts)return'';const[h,m]=ts.split(':').map(Number);return(h%12||12)+':'+(String(m).padStart(2,'0'))+' '+(h>=12?'PM':'AM');}
 function fmtRelative(ts){if(!ts)return'';const diff=Math.floor((Date.now()-new Date(ts))/60000);if(diff<1)return'just now';if(diff<60)return diff+'m ago';const h=Math.floor(diff/60);if(h<24)return h+'h ago';return fmtDate(ts.slice(0,10));}
+function esc(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+function safeUrl(value){try{const u=new URL(String(value));return ['https:','http:'].includes(u.protocol)?u.href:'';}catch{return'';}}
 function sKey(s){return{Filed:'filed',Pending:'pending',Scheduled:'scheduled',Adjourned:'adjourned',Default:'default',Judgment:'judgment',Dismissed:'dismissed',Closed:'closed'}[s]||'filed';}
 function sLabel(s){return{Scheduled:'Hearing Scheduled',Default:'Default Entered',Judgment:'Judgment Entered'}[s]||s;}
 function urgTag(c){const d=dayDiff(c.hearing);if(d===null||['Closed','Dismissed','Judgment'].includes(c.status))return'';if(d<0)return`<span class="badge t-ovd">Overdue ${Math.abs(d)}d</span>`;if(d<=3)return`<span class="badge t-ovd">In ${d}d</span>`;if(d<=7)return`<span class="badge t-urg">In ${d}d</span>`;return'';}
@@ -568,7 +547,8 @@ function buildGcalUrl(c){
   const[y,mo,d]=c.hearing.split('-');const[h,mi]=(c.htime||'09:00').split(':').map(Number);
   const pad=n=>String(n).padStart(2,'0');
   const start=`${y}${pad(mo)}${pad(d)}T${pad(h)}${pad(mi)}00`;
-  const end=`${y}${pad(mo)}${pad(d)}T${pad(h+1)}${pad(mi)}00`;
+  const endDate=new Date(Number(y),Number(mo)-1,Number(d),h+1,mi);
+  const end=`${endDate.getFullYear()}${pad(endDate.getMonth()+1)}${pad(endDate.getDate())}T${pad(endDate.getHours())}${pad(endDate.getMinutes())}00`;
   const title=encodeURIComponent(`Court Hearing — ${c.tenant||c.cnum||'Case'}`);
   const loc=encodeURIComponent(c.zid?`Via Zoom — Meeting ID# ${c.zid}`:(c.address||c.court||''));
   const details=encodeURIComponent([c.cnum&&`Case #: ${c.cnum}`,c.court&&`Court: ${c.court}`,c.judge&&`Judge: ${c.judge}`,c.ctype&&`Type: ${c.ctype}`,c.address&&`Address: ${c.address}`,c.zid&&`Zoom Meeting ID: ${c.zid}`,c.zpw&&`Passcode: ${c.zpw}`,c.zlink&&`Join: ${c.zlink}`,c.notes&&`\nNotes: ${c.notes}`].filter(Boolean).join('\n'));
@@ -585,10 +565,10 @@ function updateMetrics(){
   const totalOwed=judgments.reduce((s,c)=>s+(parseFloat(c.jtotal)||0),0);
   const activeEvictions=cases.filter(c=>c.edate&&(!c.estatus||c.estatus==='Ordered'||c.estatus==='Scheduled'));
   document.getElementById('m0').textContent=cases.length;
-  document.getElementById('m1').textContent=active.length;
+  document.getElementById('m1').textContent=active.filter(c=>c.hearing&&new Date(c.hearing+'T00:00:00')>=todayDate).length;
   document.getElementById('m2').textContent=upcoming.length;
   document.getElementById('m3').textContent=judgments.length;
-  document.getElementById('m4').textContent=activeEvictions.length>0?activeEvictions.length+' active':'—';
+  document.getElementById('m4').textContent=totalOwed>0?totalOwed.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}):'—';
   // Add eviction badge to nav tab
   const evTab=document.querySelector('.ntab:nth-child(3)');
   if(evTab&&activeEvictions.length>0&&!evTab.querySelector('.ntab-badge')){
@@ -599,44 +579,46 @@ function render(){updateMetrics();if(curView==='docket')renderDocket();else if(c
 
 // ── Card builder (shared) ─────────────────────────────────────
 function buildCard(c, showJudgment=false){
-  const amt=c.amount?'$'+Number(c.amount).toLocaleString():'';
+  const amount=Number(c.amount);
+  const amt=c.amount&&Number.isFinite(amount)?'$'+amount.toLocaleString():'';
   const ht=c.htime?' @ '+fmtTime(c.htime):'';
-  const zl=c.zid?`📹 ${c.vplat||'Zoom'} · ID: <strong>${c.zid}</strong>${c.zpw?' · Pass: '+c.zpw:''}${c.zlink?` · <a href="${c.zlink}" target="_blank" onclick="event.stopPropagation()">Join ↗</a>`:''}`:'';
+  const joinUrl=safeUrl(c.zlink);
+  const zl=c.zid?`📹 ${esc(c.vplat||'Zoom')} · ID: <strong>${esc(c.zid)}</strong>${c.zpw?' · Pass: '+esc(c.zpw):''}${joinUrl?` · <a href="${esc(joinUrl)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">Join ↗</a>`:''}`:'';
   const gcalUrl=buildGcalUrl(c);
-  return `<div class="case-card" onclick="openModal('${c.id}')">
-    <div class="cr1"><span class="cname">${c.tenant||'Unnamed'}</span><span class="badge s-${sKey(c.status)}">${sLabel(c.status)}</span>${urgTag(c)}</div>
+  return `<div class="case-card" data-case-id="${esc(c.id)}" onclick="openModal(this.dataset.caseId)">
+    <div class="cr1"><span class="cname">${esc(c.tenant||'Unnamed')}</span><span class="badge s-${sKey(c.status)}">${esc(sLabel(c.status))}</span>${urgTag(c)}</div>
     <div class="cr2">
-      ${c.cnum?`<span class="mf"><span class="mk">Case #</span>${c.cnum}</span>`:''}
-      ${c.ctype?`<span class="mf"><span class="mk">Type</span>${c.ctype}</span>`:''}
-      ${c.court?`<span class="mf"><span class="mk">Court</span>${c.court}</span>`:''}
+      ${c.cnum?`<span class="mf"><span class="mk">Case #</span>${esc(c.cnum)}</span>`:''}
+      ${c.ctype?`<span class="mf"><span class="mk">Type</span>${esc(c.ctype)}</span>`:''}
+      ${c.court?`<span class="mf"><span class="mk">Court</span>${esc(c.court)}</span>`:''}
       ${c.filed?`<span class="mf"><span class="mk">Filed</span>${fmtDate(c.filed)}</span>`:''}
       ${c.hearing?`<span class="mf"><span class="mk">Hearing</span>${fmtDate(c.hearing)}${ht}</span>`:''}
-      ${c.judge?`<span class="mf"><span class="mk">Judge</span>${c.judge}</span>`:''}
+      ${c.judge?`<span class="mf"><span class="mk">Judge</span>${esc(c.judge)}</span>`:''}
       ${amt?`<span class="mf"><span class="mk">Amount</span>${amt}</span>`:''}
     </div>
     <div class="cr3">
-      ${c.address?`<span>${c.address}</span>`:''}
-      ${c.prop&&c.prop!==c.address?`<span>📍 ${c.prop}</span>`:''}
-      ${c.smethod?`<span>Served: ${c.smethod}${c.sdate?' ('+fmtDate(c.sdate)+')':''}</span>`:''}
+      ${c.address?`<span>${esc(c.address)}</span>`:''}
+      ${c.prop&&c.prop!==c.address?`<span>📍 ${esc(c.prop)}</span>`:''}
+      ${c.smethod?`<span>Served: ${esc(c.smethod)}${c.sdate?' ('+fmtDate(c.sdate)+')':''}</span>`:''}
     </div>
     ${zl?`<div class="zoom-info">${zl}</div>`:''}
     ${showJudgment&&(c.jtotal||c.jorders)?`<div class="judgment-banner">
       <div class="jb-row">
-        ${c.jtype?`<span class="jb-type">${c.jtype} judgment</span>`:''}
+        ${c.jtype?`<span class="jb-type">${esc(c.jtype)} judgment</span>`:''}
         ${c.jdate?`<span>Entered ${fmtDate(c.jdate)}</span>`:''}
         ${c.jtotal?`<span>Total: <strong>$${Number(c.jtotal).toLocaleString()}</strong></span>`:''}
         ${c.jrent?`<span>Rent: $${Number(c.jrent).toLocaleString()}</span>`:''}
         ${c.jcosts?`<span>Costs: $${Number(c.jcosts).toLocaleString()}</span>`:''}
       </div>
       ${c.jpov?`<div class="jb-row" style="margin-top:4px;">⏰ Pay or vacate by: <strong>${fmtDate(c.jpov)}</strong></div>`:''}
-      ${c.jorders?`<div class="jb-orders">📋 ${c.jorders}</div>`:''}
-      ${c.jpayplan?`<div class="jb-payplan">💬 ${c.jpayplan}</div>`:''}
+      ${c.jorders?`<div class="jb-orders">📋 ${esc(c.jorders)}</div>`:''}
+      ${c.jpayplan?`<div class="jb-payplan">💬 ${esc(c.jpayplan)}</div>`:''}
     </div>`:''}
-    ${c.anotes?`<div style="font-size:12px;color:var(--text2);font-style:italic;margin-bottom:4px;">📝 ${c.anotes.slice(0,130)}${c.anotes.length>130?'…':''}</div>`:''}
+    ${c.anotes?`<div style="font-size:12px;color:var(--text2);font-style:italic;margin-bottom:4px;">📝 ${esc(c.anotes.slice(0,130))}${c.anotes.length>130?'…':''}</div>`:''}
     <div class="card-actions" onclick="event.stopPropagation()">
-      ${gcalUrl?`<a class="card-gcal" href="${gcalUrl}" target="_blank">📅 Add to Google Calendar</a>`:''}
-      <button class="card-edit" onclick="openModal('${c.id}')">Edit</button>
-      ${c.updated_by?`<span class="edited-by">Updated by ${c.updated_by} ${fmtRelative(c.updated_at)}</span>`:''}
+      ${gcalUrl?`<a class="card-gcal" href="${esc(gcalUrl)}" target="_blank" rel="noopener noreferrer">📅 Add to Google Calendar</a>`:''}
+      <button class="card-edit" data-case-id="${esc(c.id)}" onclick="openModal(this.dataset.caseId)">Edit</button>
+      ${c.updated_by?`<span class="edited-by">Updated by ${esc(c.updated_by)} ${esc(fmtRelative(c.updated_at))}</span>`:''}
     </div>
   </div>`;
 }
@@ -658,7 +640,7 @@ function renderDocket(){
     if(!a.hearing&&!b.hearing)return 0;
     if(!a.hearing)return 1;
     if(!b.hearing)return -1;
-    return a.hearing.localeCompare(b.hearing);
+    return (sortAsc?1:-1)*a.hearing.localeCompare(b.hearing);
   });
   const el=document.getElementById('docket-list');
   if(!list.length){el.innerHTML=`<div class="empty-state"><div class="ei">📋</div><div class="et">${cases.length?'No active cases match filters':'No upcoming cases'}</div><div class="es">Active cases (Filed, Pending, Scheduled, Adjourned, Default) appear here.<br>Cases with judgments are in the <strong>Judgments</strong> tab.</div></div>`;return;}
@@ -678,7 +660,7 @@ function renderJudgments(){
   // Sort by judgment date descending
   list.sort((a,b)=>(b.jdate||b.filed||'').localeCompare(a.jdate||a.filed||''));
   const el=document.getElementById('judgment-list');
-  if(!list.length){el.innerHTML=`<div class="empty-state"><div class="ei">⚖</div><div class="et">No judgments yet</div><div class="es">When a judgment is entered on a case, upload the DC-105 form<br>or edit the case and fill in the Judgment tab.</div></div>`;return;}
+  if(!list.length){el.innerHTML=`<div class="empty-state"><div class="ei">⚖</div><div class="et">No judgments yet</div><div class="es">When a judgment is entered, edit the case and fill in the <strong>Judgment</strong> tab.</div></div>`;return;}
   el.innerHTML=list.map(c=>buildCard(c,true)).join('');
 }
 
@@ -693,7 +675,7 @@ function renderAll(){
   });
   list.sort((a,b)=>(b.filed||'').localeCompare(a.filed||''));
   const el=document.getElementById('all-list');
-  if(!list.length){el.innerHTML=`<div class="empty-state"><div class="ei">📁</div><div class="et">No cases yet</div><div class="es">Click <strong>+ New Case</strong> or upload a summons to get started.</div></div>`;return;}
+  if(!list.length){el.innerHTML=`<div class="empty-state"><div class="ei">📁</div><div class="et">No cases yet</div><div class="es">Click <strong>+ New Case</strong> to get started.</div></div>`;return;}
   el.innerHTML=list.map(c=>buildCard(c,true)).join('');
 }
 
@@ -722,42 +704,44 @@ function buildEvictionCard(c){
     else if(execDays<=7)urgencyTag=`<span class="badge t-ovd">🔥 ${execDays}d to execute</span>`;
     else if(execDays<=14)urgencyTag=`<span class="badge t-urg">${execDays}d to execute</span>`;
   }
-  const estatusBadge=c.estatus?`<span class="badge ev-${(c.estatus||'').toLowerCase().replace(' ','-')}">${c.estatus}</span>`:'<span class="badge ev-ordered">Ordered</span>';
-  return `<div class="case-card" onclick="openModal('${c.id}')">
+  const statusClass={Ordered:'ordered',Scheduled:'scheduled',Executed:'executed',Returned:'returned'}[c.estatus]||'ordered';
+  const estatusBadge=c.estatus?`<span class="badge ev-${statusClass}">${esc(c.estatus)}</span>`:'<span class="badge ev-ordered">Ordered</span>';
+  return `<div class="case-card" data-case-id="${esc(c.id)}" onclick="openModal(this.dataset.caseId)">
     <div class="cr1">
-      <span class="cname">${c.tenant||'Unnamed'}</span>
+      <span class="cname">${esc(c.tenant||'Unnamed')}</span>
       ${estatusBadge}
       ${urgencyTag}
     </div>
     <div class="cr2">
-      ${c.cnum?`<span class="mf"><span class="mk">Case #</span>${c.cnum}</span>`:''}
-      ${c.court?`<span class="mf"><span class="mk">Court</span>${c.court}</span>`:''}
+      ${c.cnum?`<span class="mf"><span class="mk">Case #</span>${esc(c.cnum)}</span>`:''}
+      ${c.court?`<span class="mf"><span class="mk">Court</span>${esc(c.court)}</span>`:''}
       ${c.edate?`<span class="mf"><span class="mk">Order signed</span>${fmtDate(c.edate)}</span>`:''}
       ${execByDate?`<span class="mf"><span class="mk">Must execute by</span><strong>${fmtDate(execByDate)}</strong></span>`:''}
       ${c.eexecuted?`<span class="mf"><span class="mk">Executed</span>${fmtDate(c.eexecuted)}</span>`:''}
     </div>
     <div class="cr3">
-      ${c.address?`<span>${c.address}</span>`:''}
-      ${c.prop&&c.prop!==c.address?`<span>📍 ${c.prop}</span>`:''}
-      ${c.esigned?`<span>Signed by ${c.esigned}</span>`:''}
-      ${c.eofficer?`<span>Officer: ${c.eofficer}</span>`:''}
+      ${c.address?`<span>${esc(c.address)}</span>`:''}
+      ${c.prop&&c.prop!==c.address?`<span>📍 ${esc(c.prop)}</span>`:''}
+      ${c.esigned?`<span>Signed by ${esc(c.esigned)}</span>`:''}
+      ${c.eofficer?`<span>Officer: ${esc(c.eofficer)}</span>`:''}
     </div>
     ${c.eappdate||c.ejdate?`<div class="eviction-details">
       ${c.ejdate?`<span><span class="mk">Judgment date</span>${fmtDate(c.ejdate)}</span>`:''}
       ${c.eappdate?`<span><span class="mk">Application date</span>${fmtDate(c.eappdate)}</span>`:''}
       ${c.epayment&&c.epayment!=='0'?`<span><span class="mk">Payment received</span>$${Number(c.epayment).toLocaleString()}</span>`:''}
     </div>`:''}
-    ${c.enotes?`<div class="eviction-notes">📝 ${c.enotes}</div>`:''}
+    ${c.enotes?`<div class="eviction-notes">📝 ${esc(c.enotes)}</div>`:''}
     <div class="card-actions" onclick="event.stopPropagation()">
-      <button class="card-edit" onclick="openModal('${c.id}')">Edit / update</button>
-      ${c.estatus!=='Executed'&&c.estatus!=='Returned'?`<button class="card-edit" style="background:#EAF3DE;color:#27500A;border-color:#B8D8A0;" onclick="event.stopPropagation();quickMarkExecuted('${c.id}')">✓ Mark executed</button>`:''}
-      ${c.updated_by?`<span class="edited-by">Updated by ${c.updated_by} ${fmtRelative(c.updated_at)}</span>`:''}
+      <button class="card-edit" data-case-id="${esc(c.id)}" onclick="openModal(this.dataset.caseId)">Edit / update</button>
+      ${c.estatus!=='Executed'&&c.estatus!=='Returned'?`<button class="card-edit" data-case-id="${esc(c.id)}" style="background:#EAF3DE;color:#27500A;border-color:#B8D8A0;" onclick="event.stopPropagation();quickMarkExecuted(this.dataset.caseId)">✓ Mark executed</button>`:''}
+      ${c.updated_by?`<span class="edited-by">Updated by ${esc(c.updated_by)} ${esc(fmtRelative(c.updated_at))}</span>`:''}
     </div>
   </div>`;
 }
 
 async function quickMarkExecuted(id){
   const c=cases.find(x=>x.id===id);if(!c)return;
+  if(!currentUser){openWho();return;}
   const today=todayStr;
   try{
     await sbPatch('cases',id,{estatus:'Executed',eexecuted:today,updated_by:currentUser,updated_at:new Date().toISOString()});
@@ -784,7 +768,7 @@ function renderEvictions(){
     return (a.edate||'').localeCompare(b.edate||'');
   });
   const el=document.getElementById('eviction-list');
-  if(!list.length){el.innerHTML=`<div class="empty-state"><div class="ei">🚪</div><div class="et">No eviction orders</div><div class="es">When an Order of Eviction (DC-107) is signed,<br>upload it or open the case and fill in the <strong>Eviction order</strong> tab.</div></div>`;return;}
+  if(!list.length){el.innerHTML=`<div class="empty-state"><div class="ei">🚪</div><div class="et">No eviction orders</div><div class="es">When an Order of Eviction (DC-107) is signed, open the case and fill in the <strong>Eviction order</strong> tab.</div></div>`;return;}
   el.innerHTML=list.map(c=>buildEvictionCard(c)).join('');
 }
 
@@ -814,13 +798,13 @@ function renderCalendar(){
     if(cell.om)return'<div class="cal-cell om"></div>';
     const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(cell.d).padStart(2,'0')}`;
     const dc=cases.filter(c=>c.hearing===ds);
-    const chips=dc.map(c=>{const[bg,fg]=(SCOL[c.status]||'#F1EFE8,#444441').split(',');return`<div class="cal-chip" style="background:${bg};color:${fg};" onclick="openModal('${c.id}')">${c.tenant||c.cnum||'Case'}</div>`;}).join('');
+    const chips=dc.map(c=>{const[bg,fg]=(SCOL[c.status]||'#F1EFE8,#444441').split(',');return`<div class="cal-chip" data-case-id="${esc(c.id)}" style="background:${bg};color:${fg};" onclick="openModal(this.dataset.caseId)">${esc(c.tenant||c.cnum||'Case')}</div>`;}).join('');
     return`<div class="cal-cell${ds===todayStr?' today':''}"><div class="day-num">${cell.d}</div>${chips}</div>`;
   }).join('');
 }
 function calNav(d){calMonth+=d;if(calMonth<0){calMonth=11;calYear--;}if(calMonth>11){calMonth=0;calYear++;}renderCalendar();}
 function calToday(){calYear=todayDate.getFullYear();calMonth=todayDate.getMonth();renderCalendar();}
-function toggleSort(){sortAsc=!sortAsc;document.getElementById('sort-lbl').textContent=(sortAsc?'↓':'↑')+' Hearing';renderDocket();}
+function toggleSort(){sortAsc=!sortAsc;document.getElementById('sort-lbl').textContent=(sortAsc?'↑':'↓')+' Hearing';renderDocket();}
 
 // ── Activity ─────────────────────────────────────────────────
 async function renderActivity(){
@@ -831,7 +815,7 @@ async function renderActivity(){
     if(!rows.length){el.innerHTML='<div style="color:var(--text3);font-size:13px;padding:20px 0;">No activity yet.</div>';return;}
     const icons={created:'✚',updated:'✎',deleted:'✕'};
     const cls={created:'act-created',updated:'act-updated',deleted:'act-deleted'};
-    el.innerHTML=rows.map(r=>`<div class="act-row"><div class="act-icon ${cls[r.action]||'act-updated'}">${icons[r.action]||'•'}</div><div><div class="act-title">${r.user_name||'Unknown'} ${r.action} a case</div><div class="act-meta">${r.details||''} · ${fmtRelative(r.ts)}</div></div></div>`).join('');
+    el.innerHTML=rows.map(r=>`<div class="act-row"><div class="act-icon ${cls[r.action]||'act-updated'}">${icons[r.action]||'•'}</div><div><div class="act-title">${esc(r.user_name||'Unknown')} ${esc(r.action)} a case</div><div class="act-meta">${esc(r.details||'')} · ${esc(fmtRelative(r.ts))}</div></div></div>`).join('');
   }catch(e){el.innerHTML='<div style="color:var(--text3);">Could not load activity.</div>';}
 }
 
@@ -841,8 +825,6 @@ function openModal(id){
   editId=id;
   document.getElementById('m-title').textContent=id?'Edit case':'New case';
   document.getElementById('m-del').style.display=id?'':'none';
-  document.getElementById('upzone').style.display='';
-  document.getElementById('extr-msg').style.display='none';
   mTab(0);
   const c=id?cases.find(x=>x.id===id):{};
   const g=i=>document.getElementById(i);
@@ -875,6 +857,7 @@ function createCalEvent(){const c={tenant:document.getElementById('f-tenant').va
 
 async function saveCase(){
   const g=i=>document.getElementById(i).value;
+  if(!currentUser){openWho();return;}
   if(!g('f-tenant').trim()&&!g('f-cnum').trim()){alert('Enter a tenant name or case number.');return;}
   const now=new Date().toISOString();
   const c={id:editId||(Date.now().toString(36)+Math.random().toString(36).slice(2,5)),tenant:g('f-tenant').trim(),address:g('f-addr'),prop:g('f-prop'),cnum:g('f-cnum'),ctype:g('f-ctype'),court:g('f-court'),judge:g('f-judge'),filed:g('f-filed')||null,hearing:g('f-hearing')||null,htime:g('f-htime')||null,status:g('f-status'),amount:g('f-amt')||null,vplat:g('f-vplat'),zid:g('f-zid'),zpw:g('f-zpw'),zlink:g('f-zlink'),sdate:g('f-sdate')||null,smethod:g('f-smethod'),server_name:g('f-server'),rof:g('f-rof')||null,anotes:g('f-anotes'),notes:g('f-notes'),jdate:g('f-jdate')||null,jtype:g('f-jtype'),jposs:g('f-jposs'),jrent:g('f-jrent')||null,jcosts:g('f-jcosts')||null,jtotal:g('f-jtotal')||null,jpov:g('f-jpov')||null,jsigned:g('f-jsigned'),jorders:g('f-jorders'),jpayplan:g('f-jpayplan'),edate:g('f-edate')||null,estatus:g('f-estatus'),eappdate:g('f-eappdate')||null,ejdate:g('f-ejdate')||null,esigned:g('f-esigned'),eexecuted:g('f-eexecuted')||null,eofficer:g('f-eofficer'),epayment:g('f-epayment')||null,enotes:g('f-enotes'),updated_by:currentUser,updated_at:now};
@@ -898,113 +881,11 @@ async function deleteCase(){
 // ── Export CSV ───────────────────────────────────────────────
 function exportCSV(){
   if(!cases.length){alert('No cases to export.');return;}
-  const H=['Tenant','Address','Property','Case #','Type','Court','Judge','Filed','Hearing','Hearing Time','Status','Amount','Platform','Meeting ID','Passcode','Join Link','Served Date','Service Method','Process Server','Return of Service','Attorney Notes','Notes','Updated By'];
-  const R=cases.map(c=>[c.tenant,c.address,c.prop,c.cnum,c.ctype,c.court,c.judge,c.filed,c.hearing,c.htime,c.status,c.amount,c.vplat,c.zid,c.zpw,c.zlink,c.sdate,c.smethod,c.server_name,c.rof,c.anotes,c.notes,c.updated_by].map(v=>`"${(v||'').replace(/"/g,'""')}"`));
+  const H=['Tenant','Address','Property','Case #','Type','Court','Judge','Filed','Hearing','Hearing Time','Status','Amount','Platform','Meeting ID','Passcode','Join Link','Served Date','Service Method','Process Server','Return of Service','Judgment Date','Judgment Type','Possession Judgment','Rent Owed','Costs','Judgment Total','Pay-or-Vacate Deadline','Judgment Signed By','Further Orders','Payment Plan Notes','Eviction Order Date','Eviction Status','Eviction Application Date','Original Judgment Date','Eviction Executed Date','Executing Officer','Payment Since Judgment','Eviction Notes','Attorney Notes','General Notes','Updated By','Updated At'];
+  const R=cases.map(c=>[c.tenant,c.address,c.prop,c.cnum,c.ctype,c.court,c.judge,c.filed,c.hearing,c.htime,c.status,c.amount,c.vplat,c.zid,c.zpw,c.zlink,c.sdate,c.smethod,c.server_name,c.rof,c.jdate,c.jtype,c.jposs,c.jrent,c.jcosts,c.jtotal,c.jpov,c.jsigned,c.jorders,c.jpayplan,c.edate,c.estatus,c.eappdate,c.ejdate,c.eexecuted,c.eofficer,c.epayment,c.enotes,c.anotes,c.notes,c.updated_by,c.updated_at].map(v=>`"${String(v??'').replace(/"/g,'""')}"`));
   const csv=[H.join(','),...R.map(r=>r.join(','))].join('\n');
   const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);a.download='case-docket-'+todayStr+'.csv';a.click();
 }
-
-// ── Settings ─────────────────────────────────────────────────
-function openSettings(){
-  document.getElementById('api-key-input').value = sharedAnthropicKey ? '••••••••••••••••' : '';
-  document.getElementById('settings-overlay').style.display='flex';
-  updateAkStatus(!!sharedAnthropicKey);
-}
-function closeSettings(){document.getElementById('settings-overlay').style.display='none';}
-async function saveApiKey(){
-  const k=document.getElementById('api-key-input').value.trim();
-  if(!k||k.startsWith('•')){alert('Paste your actual API key first.');return;}
-  try {
-    // Upsert into settings table
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/settings`, {
-      method:'POST',
-      headers:{...SB_HEADERS,'Prefer':'resolution=merge-duplicates'},
-      body:JSON.stringify({key:'anthropic_key',value:k})
-    });
-    if(!r.ok) throw new Error(await r.text());
-    sharedAnthropicKey = k;
-    updateAkStatus(true);
-    alert('✓ API key saved — AI extraction now works for the whole team.');
-  } catch(e) {
-    // Fallback to localStorage
-    localStorage.setItem(AK,k);
-    sharedAnthropicKey = k;
-    updateAkStatus(true);
-    alert('Saved locally. To share with team, make sure the settings table exists in Supabase.');
-  }
-}
-function updateAkStatus(hasKey){
-  const dot=document.getElementById('ak-dot');
-  const label=document.getElementById('ak-status');
-  if(!dot||!label)return;
-  dot.style.background=hasKey?'#639922':'#d93025';
-  label.textContent=hasKey?'API key set — AI extraction enabled for everyone':'No API key — add one above';
-}
-async function loadSharedApiKey(){
-  try{
-    const rows=await sbGet('settings','select=value&key=eq.anthropic_key');
-    if(rows&&rows.length>0&&rows[0].value){sharedAnthropicKey=rows[0].value;}
-    else{sharedAnthropicKey=localStorage.getItem(AK)||'';}
-  }catch(e){sharedAnthropicKey=localStorage.getItem(AK)||'';}
-}
-function toggleApiKeyVis(){const i=document.getElementById('api-key-input');i.type=i.type==='password'?'text':'password';}
-
-// ── AI Extraction ─────────────────────────────────────────────
-function showExtrMsg(html,type){const el=document.getElementById('extr-msg');const s={loading:'background:var(--surface2);color:var(--text2)',success:'background:#EAF3DE;color:#27500A',error:'background:#FAECE7;color:#993C1D'};el.style.cssText=s[type]||s.loading;el.innerHTML=html;el.style.display='flex';}
-async function handleUpload(file){
-  if(!file)return;
-  const ext=file.name.split('.').pop().toLowerCase();
-  if(!['pdf','jpg','jpeg','png'].includes(ext)){alert('Upload a PDF, JPG, or PNG.');return;}
-  const apiKey = sharedAnthropicKey || localStorage.getItem(AK);
-  if(!apiKey){alert('No API key set. Go to Settings (⚙) and add your Anthropic key — it will work for everyone once saved.');return;}
-  document.getElementById('upzone').style.display='none';
-  showExtrMsg('<span class="spin">⟳</span>&nbsp; Extracting case details…','loading');
-  try{
-    const base64=await toBase64(file);
-    const isPDF=file.type==='application/pdf'||ext==='pdf';
-    const block=isPDF?{type:'document',source:{type:'base64',media_type:'application/pdf',data:base64}}:{type:'image',source:{type:'base64',media_type:file.type||'image/jpeg',data:base64}};
-    const prompt=`You are extracting data from a Michigan landlord-tenant court document. It may be a SUMMONS (DC-104), JUDGMENT (DC-105), or ORDER OF EVICTION (DC-107). Read every field, stamp, checkbox, and handwritten entry carefully. Return ONLY valid JSON — no markdown.\n\n{"docType":"summons or judgment or eviction","tenant":"full defendant name","address":"full property address","casenum":"case number e.g. 26-10560-LT","court":"full court name and district number","judge":"judge name","filed":"YYYY-MM-DD","hearing":"hearing date YYYY-MM-DD (summons only)","hearingTime":"HH:MM 24h (summons only)","caseType":"Eviction|Money Judgment|Land Contract|Trespass|Other","amount":null,"vplatform":"Zoom or Teams or null","zoomId":"meeting ID or null","zoomPassword":"passcode or null","joinLink":"full URL or null","judgmentDate":"YYYY-MM-DD (judgment or eviction only)","judgmentType":"Consent or Default or Hearing","possessionJudgment":"Yes — plaintiff or Yes — defendant retains or No","rentOwed":null,"costs":null,"judgmentTotal":null,"payOrVacateDeadline":"YYYY-MM-DD or null","furtherOrders":"exact verbatim text from item 10 THE COURT FURTHER ORDERS field","signedBy":"judge who signed","evictionOrderDate":"YYYY-MM-DD date judge signed the Order of Eviction — look for Judge signature and date on DC-107","evictionApplicationDate":"YYYY-MM-DD date the application was signed","evictionJudgmentDate":"YYYY-MM-DD original judgment date from item 1 of DC-107","evictionPaymentReceived":0,"evictionSignedBy":"judge name on the Order of Eviction signature line"}`;
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:[block,{type:'text',text:prompt}]}]})});
-    if(!res.ok){const err=await res.json();throw new Error(err.error?.message||'API error '+res.status);}
-    const data=await res.json();
-    const raw=data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
-    const info=JSON.parse(raw.replace(/```json|```/g,'').trim());
-    const g=i=>document.getElementById(i);
-    if(info.tenant)g('f-tenant').value=info.tenant;if(info.address)g('f-addr').value=info.address;
-    if(info.casenum)g('f-cnum').value=info.casenum;if(info.court)g('f-court').value=info.court;
-    if(info.judge)g('f-judge').value=info.judge;if(info.filed)g('f-filed').value=info.filed;
-    if(info.hearing)g('f-hearing').value=info.hearing;if(info.hearingTime)g('f-htime').value=info.hearingTime;
-    if(info.caseType)g('f-ctype').value=info.caseType;if(info.amount)g('f-amt').value=info.amount;
-    if(info.vplatform)g('f-vplat').value=info.vplatform;if(info.zoomId)g('f-zid').value=info.zoomId;
-    if(info.zoomPassword)g('f-zpw').value=info.zoomPassword;if(info.joinLink)g('f-zlink').value=info.joinLink;
-    // Judgment fields
-    if(info.judgmentDate)g('f-jdate').value=info.judgmentDate;
-    if(info.judgmentType)g('f-jtype').value=info.judgmentType;
-    if(info.possessionJudgment)g('f-jposs').value=info.possessionJudgment;
-    if(info.rentOwed)g('f-jrent').value=info.rentOwed;
-    if(info.costs)g('f-jcosts').value=info.costs;
-    if(info.judgmentTotal)g('f-jtotal').value=info.judgmentTotal;
-    if(info.payOrVacateDeadline)g('f-jpov').value=info.payOrVacateDeadline;
-    if(info.furtherOrders)g('f-jorders').value=info.furtherOrders;
-    if(info.signedBy)g('f-jsigned').value=info.signedBy;
-    // Eviction fields (DC-107)
-    if(info.evictionOrderDate){g('f-edate').value=info.evictionOrderDate;updateExecByDate();}
-    if(info.evictionApplicationDate)g('f-eappdate').value=info.evictionApplicationDate;
-    if(info.evictionJudgmentDate)g('f-ejdate').value=info.evictionJudgmentDate;
-    if(info.evictionSignedBy)g('f-esigned').value=info.evictionSignedBy;
-    if(info.evictionPaymentReceived!==undefined&&info.evictionPaymentReceived!==null)g('f-epayment').value=info.evictionPaymentReceived;
-    // Set status and jump to correct tab
-    if(!editId){
-      if(info.docType==='eviction'){g('f-status').value='Closed';g('f-estatus').value='Ordered';setTimeout(()=>{document.querySelectorAll('.mtab')[4].click();},300);}
-      else if(info.docType==='judgment'){g('f-status').value='Judgment';setTimeout(()=>{document.querySelectorAll('.mtab')[3].click();},300);}
-      else{g('f-status').value='Scheduled';}
-    }
-    refreshGcalBanner();
-    const docLabel = info.docType==='eviction'?'🚪 Eviction order extracted':info.docType==='judgment'?'⚖ Judgment extracted':'✓ Summons extracted';
-    showExtrMsg(docLabel+' — review fields and save','success');
-  }catch(e){showExtrMsg('⚠ Extraction failed: '+e.message,'error');document.getElementById('upzone').style.display='';console.error(e);}
-}
-function toBase64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=()=>rej(new Error('Read failed'));r.readAsDataURL(file);});}
 
 // ── Init ─────────────────────────────────────────────────────
 calYear=todayDate.getFullYear();calMonth=todayDate.getMonth();
@@ -1014,7 +895,7 @@ if(window.navigator.standalone || window.matchMedia('(display-mode: standalone)'
 }
 updateWhoBadge();
 if(!currentUser)setTimeout(openWho,600);
-loadSharedApiKey().then(loadCases);
+loadCases();
 </script>
 </body>
 </html>
